@@ -101,11 +101,10 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["t", "consumption", "production", "quality"],
+            "required": ["t", "consumption", "quality"],
             "properties": {
               "t": {"$ref": "#/$defs/timestamp"},
               "consumption": {"$ref": "#/$defs/intensity"},
-              "production": {"$ref": "#/$defs/intensity"},
               "quality": {"$ref": "#/$defs/quality"}
             }
           }
@@ -125,6 +124,7 @@
             "type": "object",
             "required": ["zone", "name", "name_en"],
             "properties": {
+              "parent": {"$ref": "#/$defs/zoneCode", "description": "bei Gebotszonen: das Land"},
               "zone": {"$ref": "#/$defs/zoneCode"},
               "name": {"type": "string"},
               "name_en": {"type": "string"}

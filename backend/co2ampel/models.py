@@ -87,3 +87,10 @@ class ZoneResult:
     generation_mw: float = 0.0
     import_mw: float = 0.0
     export_mw: float = 0.0
+    own_generation_mw: float = 0.0  # ohne Speicherentladung
+    emissions: float = 0.0  # Σ G_ik·e_k (MW·g/kWh = kg/h) ohne Speicherentladung
+
+    @property
+    def net_use_mw(self) -> float:
+        """Nettoverbrauch der Zone (inkl. Speicherladen): Erzeugung + Importe - Exporte."""
+        return self.generation_mw + self.import_mw - self.export_mw

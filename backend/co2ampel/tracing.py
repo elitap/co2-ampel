@@ -163,5 +163,7 @@ def trace(step: StepInput, cfg: TracingConfig) -> dict[str, ZoneResult]:
             generation_mw=float(own_gen[i] + storage_out[i]),
             import_mw=float(inflow[i]),
             export_mw=float(outflow[i]),
+            own_generation_mw=float(own_gen[i]),
+            emissions=float(emissions[i]),
         )
     return results

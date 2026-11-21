@@ -35,6 +35,9 @@ energy_charts:
 entsoe:
   base_url: https://web-api.tp.entsoe.eu/api
   budget_seconds: 240
+  # Gebotszonen (bidding_zones.yaml): A75 je Gebotszone + A11 je Grenze, ca. 110 Anfragen pro Lauf
+  # (ENTSO-E erlaubt 400/min).
+  split_budget_seconds: 300
 
 # Intensität von Regionen außerhalb des Datenbereichs (gCO2eq/kWh), Annahmen auf Basis
 # veröffentlichter Jahresmittel (Größenordnung), siehe docs/DECISIONS.md.

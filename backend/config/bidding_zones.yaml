@@ -1,0 +1,96 @@
+# Aufteilung von Ländern in Gebotszonen. Nur aktiv, wenn ENTSOE_API_TOKEN gesetzt ist:
+# Erzeugung je Gebotszone aus ENTSO-E A75, Flüsse je Gebotszonen-Grenze aus ENTSO-E A11.
+# Ein Land wird in einem Lauf nur aufgeteilt, wenn alle seine Gebotszonen aktuelle A75-Daten haben;
+# sonst bleibt es ein Knoten mit Energy-Charts-Daten. Das Land selbst wird zusätzlich als
+# verbrauchsgewichtetes Mittel seiner Gebotszonen ausgegeben.
+#
+# external: Grenzen zu anderen Zonen. Nachbar = Zonen-Code (zones.yaml), Gebotszone eines anderen
+#           Landes (diese Datei) oder externe Region (z. B. GB). Grenzen zwischen zwei aufgeteilten
+#           Ländern werden nur einmal benötigt, doppelte Einträge sind unschädlich.
+# EIC-Codes: ENTSO-E Transparency Platform, Bidding Zones.
+countries:
+  "NO":
+    zones:
+      - {code: NO-NO1, name_de: "Norwegen Südost (NO1)", name_en: "Norway Southeast (NO1)", entsoe: 10YNO-1--------2}
+      - {code: NO-NO2, name_de: "Norwegen Südwest (NO2)", name_en: "Norway Southwest (NO2)", entsoe: 10YNO-2--------T}
+      - {code: NO-NO3, name_de: "Norwegen Mitte (NO3)", name_en: "Norway Central (NO3)", entsoe: 10YNO-3--------J}
+      - {code: NO-NO4, name_de: "Norwegen Nord (NO4)", name_en: "Norway North (NO4)", entsoe: 10YNO-4--------9}
+      - {code: NO-NO5, name_de: "Norwegen West (NO5)", name_en: "Norway West (NO5)", entsoe: 10Y1001A1001A48H}
+    internal:
+      - [NO-NO1, NO-NO2]
+      - [NO-NO1, NO-NO3]
+      - [NO-NO1, NO-NO5]
+      - [NO-NO2, NO-NO5]
+      - [NO-NO3, NO-NO4]
+      - [NO-NO3, NO-NO5]
+    external:
+      - [NO-NO1, SE-SE3]
+      - [NO-NO2, DE]
+      - [NO-NO2, DK-DK1]
+      - [NO-NO2, NL]
+      - [NO-NO2, GB]
+      - [NO-NO3, SE-SE2]
+      - [NO-NO4, SE-SE1]
+      - [NO-NO4, SE-SE2]
+      - [NO-NO4, FI]
+  SE:
+    zones:
+      - {code: SE-SE1, name_de: "Schweden Nord (SE1)", name_en: "Sweden North (SE1)", entsoe: 10Y1001A1001A44P}
+      - {code: SE-SE2, name_de: "Schweden Mitte-Nord (SE2)", name_en: "Sweden North-Central (SE2)", entsoe: 10Y1001A1001A45N}
+      - {code: SE-SE3, name_de: "Schweden Mitte-Süd (SE3)", name_en: "Sweden South-Central (SE3)", entsoe: 10Y1001A1001A46L}
+      - {code: SE-SE4, name_de: "Schweden Süd (SE4)", name_en: "Sweden South (SE4)", entsoe: 10Y1001A1001A47J}
+    internal:
+      - [SE-SE1, SE-SE2]
+      - [SE-SE2, SE-SE3]
+      - [SE-SE3, SE-SE4]
+    external:
+      - [SE-SE1, FI]
+      - [SE-SE1, NO-NO4]
+      - [SE-SE2, NO-NO3]
+      - [SE-SE2, NO-NO4]
+      - [SE-SE3, NO-NO1]
+      - [SE-SE3, DK-DK1]
+      - [SE-SE3, FI]
+      - [SE-SE4, DE]
+      - [SE-SE4, DK-DK2]
+      - [SE-SE4, LT]
+      - [SE-SE4, PL]
+  DK:
+    zones:
+      - {code: DK-DK1, name_de: "Dänemark West (DK1)", name_en: "Denmark West (DK1)", entsoe: 10YDK-1--------W}
+      - {code: DK-DK2, name_de: "Dänemark Ost (DK2)", name_en: "Denmark East (DK2)", entsoe: 10YDK-2--------M}
+    internal:
+      - [DK-DK1, DK-DK2]
+    external:
+      - [DK-DK1, DE]
+      - [DK-DK1, NL]
+      - [DK-DK1, NO-NO2]
+      - [DK-DK1, SE-SE3]
+      - [DK-DK1, GB]
+      - [DK-DK2, DE]
+      - [DK-DK2, SE-SE4]
+  IT:
+    zones:
+      - {code: IT-NORD, name_de: "Italien Nord", name_en: "Italy North", entsoe: 10Y1001A1001A73I}
+      - {code: IT-CNOR, name_de: "Italien Mitte-Nord", name_en: "Italy Centre-North", entsoe: 10Y1001A1001A70O}
+      - {code: IT-CSUD, name_de: "Italien Mitte-Süd", name_en: "Italy Centre-South", entsoe: 10Y1001A1001A71M}
+      - {code: IT-SUD, name_de: "Italien Süd", name_en: "Italy South", entsoe: 10Y1001A1001A788}
+      - {code: IT-CALA, name_de: "Italien Kalabrien", name_en: "Italy Calabria", entsoe: 10Y1001C--00096J}
+      - {code: IT-SICI, name_de: "Italien Sizilien", name_en: "Italy Sicily", entsoe: 10Y1001A1001A75E}
+      - {code: IT-SARD, name_de: "Italien Sardinien", name_en: "Italy Sardinia", entsoe: 10Y1001A1001A74G}
+    internal:
+      - [IT-NORD, IT-CNOR]
+      - [IT-CNOR, IT-CSUD]
+      - [IT-CNOR, IT-SARD]
+      - [IT-CSUD, IT-SARD]
+      - [IT-CSUD, IT-SUD]
+      - [IT-SUD, IT-CALA]
+      - [IT-CALA, IT-SICI]
+    external:
+      - [IT-NORD, FR]
+      - [IT-NORD, CH]
+      - [IT-NORD, AT]
+      - [IT-NORD, SI]
+      - [IT-SUD, GR]
+      - [IT-CSUD, ME]
+      - [IT-SICI, MT]

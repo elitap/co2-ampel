@@ -168,6 +168,19 @@ def parse_generation(xml: bytes, step: timedelta = timedelta(minutes=15)) -> Gen
     return doc
 
 
+def canonical_generation(doc: GenerationDoc, mapping: dict[str, str | None]) -> dict[str, Series]:
+    """PSR-Typen auf kanonische Technologien abbilden (Speicherladen wird nicht übernommen)."""
+    out: dict[str, Series] = {}
+    for psr, s in doc.generation.items():
+        k = mapping.get(psr) if psr is not None else None
+        if k is None or k == "charge":
+            continue
+        tgt = out.setdefault(k, {})
+        for t, v in s.items():
+            tgt[t] = tgt.get(t, 0.0) + v
+    return out
+
+
 def parse_flows(xml: bytes, step: timedelta = timedelta(minutes=15)) -> dict[tuple[str, str], Series]:
     """Parser für A11: (out_Domain, in_Domain) -> Fluss in MW (>= 0) von out nach in."""
     if (reason := is_acknowledgement(xml)) is not None:

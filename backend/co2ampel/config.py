@@ -24,6 +24,26 @@ class Zone:
     energy_charts: str
     alias: str
     entsoe: str
+    bzn: str = ""  # EIC an Grenzen (A11), falls abweichend (DE -> Gebotszone DE-LU)
+    parent: str | None = None  # bei Gebotszonen: Land
+
+    @property
+    def border_eic(self) -> str:
+        return self.bzn or self.entsoe
+
+
+@dataclass(frozen=True)
+class SplitCountry:
+    """Ein Land, das (mit ENTSO-E-Token) in Gebotszonen aufgeteilt wird."""
+
+    country: str
+    zones: tuple[Zone, ...]
+    internal: tuple[tuple[str, str], ...]
+    external: tuple[tuple[str, str], ...]
+
+    @property
+    def codes(self) -> list[str]:
+        return [z.code for z in self.zones]
 
 
 @dataclass(frozen=True)
@@ -73,13 +93,19 @@ class Config:
     entsoe_budget_seconds: float = 240
     external_intensity: dict[str, float] = field(default_factory=dict)
     default_external_intensity: float = 450
+    entsoe_split_budget_seconds: float = 300
+    bidding: tuple[SplitCountry, ...] = ()
+
+    @property
+    def sub_zones(self) -> list[Zone]:
+        return [z for s in self.bidding for z in s.zones]
 
     @property
     def zone_codes(self) -> list[str]:
         return [z.code for z in self.zones]
 
     def zone(self, code: str) -> Zone:
-        for z in self.zones:
+        for z in (*self.zones, *self.sub_zones):
             if z.code == code:
                 return z
         raise KeyError(code)
@@ -116,6 +142,7 @@ def load_config(config_dir: Path = DEFAULT_CONFIG_DIR) -> Config:
             energy_charts=str(z["energy_charts"]),
             alias=str(z["alias"]),
             entsoe=str(z["entsoe"]),
+            bzn=str(z.get("bzn", "")),
         )
         for z in zones_raw["zones"]
     )
@@ -145,6 +172,8 @@ def load_config(config_dir: Path = DEFAULT_CONFIG_DIR) -> Config:
     tl = TrafficLight(float(tl_raw["green_below"]), float(tl_raw["red_above"]))
     if not 0 < tl.green_below <= tl.red_above:
         raise ConfigError("traffic_light: 0 < green_below <= red_above verletzt")
+
+    bidding = _load_bidding(config_dir / "bidding_zones.yaml", set(codes), set(external.values()))
 
     pl = st_raw.get("plausibility", {})
     ec = st_raw.get("energy_charts", {})
@@ -177,4 +206,38 @@ def load_config(config_dir: Path = DEFAULT_CONFIG_DIR) -> Config:
         entsoe_budget_seconds=float(en.get("budget_seconds", 240)),
         external_intensity={str(k): float(v) for k, v in (ext.get("zones") or {}).items()},
         default_external_intensity=float(ext.get("default", 450)),
+        entsoe_split_budget_seconds=float(en.get("split_budget_seconds", 300)),
+        bidding=bidding,
     )
+
+
+def _load_bidding(path: Path, zone_codes: set[str], external_codes: set[str]) -> tuple[SplitCountry, ...]:
+    if not path.is_file():
+        return ()
+    raw = _load(path).get("countries") or {}
+    out: list[SplitCountry] = []
+    for key, spec in raw.items():
+        country = str(key)
+        if country not in zone_codes:
+            raise ConfigError(f"bidding_zones: {country} ist keine Zone in zones.yaml")
+        subs = tuple(
+            Zone(code=str(z["code"]), name_de=str(z["name_de"]), name_en=str(z["name_en"]), energy_charts="",
+                 alias="", entsoe=str(z["entsoe"]), parent=country)
+            for z in spec["zones"]
+        )
+        internal = tuple((str(a), str(b)) for a, b in spec.get("internal") or [])
+        external = tuple((str(a), str(b)) for a, b in spec.get("external") or [])
+        out.append(SplitCountry(country, subs, internal, external))
+    all_subs = {z.code for s in out for z in s.zones}
+    if len(all_subs) != sum(len(s.zones) for s in out) or all_subs & zone_codes:
+        raise ConfigError("bidding_zones: doppelte Codes")
+    known = zone_codes | all_subs | external_codes
+    for s in out:
+        own = set(s.codes)
+        for a, b in s.internal:
+            if a not in own or b not in own:
+                raise ConfigError(f"bidding_zones {s.country}: interne Grenze {a}-{b} unbekannt")
+        for a, b in s.external:
+            if a not in own or b not in known:
+                raise ConfigError(f"bidding_zones {s.country}: externe Grenze {a}-{b} unbekannt")
+    return tuple(out)

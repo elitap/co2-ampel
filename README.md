@@ -119,6 +119,22 @@ Die Android-App wird in der CI gebaut (`ci.yml`: Lint, Unit-Tests, Debug-APK). E
 
 Alle Actions sind per Commit-SHA gepinnt. Dependabot aktualisiert pip, Gradle und Actions wöchentlich.
 
+## Gebotszonen
+
+Mit ENTSO-E-Token werden Norwegen (NO1–NO5), Schweden (SE1–SE4), Dänemark (DK1/DK2) und Italien (7 Zonen)
+automatisch in Gebotszonen aufgeteilt (`backend/config/bidding_zones.yaml`). Die Länder bleiben als gewichtetes
+Mittel erhalten. Ohne Token wird länderweise gerechnet, weil Energy-Charts nur Länderdaten liefert.
+
+## Speicherung
+
+Es gibt keine Datenbank und keine Daten-Commits. Auf GitHub Pages liegen nur:
+
+- der aktuelle Wert je Zone,
+- ein **rollendes 48-h-Fenster** je Zone (Zeit, Verbrauch, Qualität),
+- ein Rohdaten-Cache der letzten 11 h.
+
+Jede Veröffentlichung ersetzt die vorige vollständig. Details: `docs/DECISIONS.md`, Abschnitt „Speicherung“.
+
 ## Bekannte Grenzen
 
 - **Verzögerung:** Die Quellen veröffentlichen je nach Land mit 1–4 h Verzug, manche Balkanländer mit Tagen.

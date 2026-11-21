@@ -204,3 +204,48 @@ oder wenn der letzte erfolgreiche Abruf länger als 45 min zurückliegt (kein Ne
   `…_KEY_PASSWORD`). Eine Kopie liegt lokal beim Repo-Inhaber außerhalb des Repos, nicht im Repo.
 - `release.yml` dekodiert den Keystore nur im Build-Schritt in `$RUNNER_TEMP`, löscht ihn danach und prüft die
   Signatur mit `apksigner verify`.
+
+## Gebotszonen (ab ENTSO-E-Token)
+
+### G1 – Aufteilung von NO, SE, DK und IT
+Energy-Charts kennt nur Länder, ENTSO-E liefert Erzeugung (A75) und Flüsse (A11) je Gebotszone. Mit Token
+werden deshalb vier Länder aufgeteilt: NO in NO1–NO5, SE in SE1–SE4, DK in DK1/DK2 und IT in NORD, CNOR,
+CSUD, SUD, CALA, SICI, SARD. Konfiguriert ist das in `backend/config/bidding_zones.yaml`, mit EIC-Codes,
+internen Grenzen und Grenzen zu Nachbarn.
+
+- **Bedingung je Land und Lauf**: Alle Gebotszonen des Landes müssen A75-Ist-Werte haben, die höchstens 3 h
+  alt sind. Sonst bleibt das Land für diesen Lauf ein Knoten mit Energy-Charts-Daten. Es wird also nie mit
+  halben Daten aufgeteilt.
+- **Flüsse**: A11 je Gebotszonen-Grenze. Besteht eine Ländergrenze aus genau einer Gebotszonen-Grenze
+  (z. B. NO–DE nur über NO2, IT–AT nur über NORD), wird zusätzlich der Energy-Charts-Länderfluss dieser
+  Grenze zugeordnet. Das ist wichtig für Grenzen zu externen Regionen wie NO2–GB.
+- **An Grenzen zu Deutschland** wird der EIC der Gebotszone DE-LU verwendet (Feld `bzn` in `zones.yaml`).
+- **Ausgabe**:
+  - Die Gebotszonen erscheinen zusätzlich, z. B. `NO-NO1`, in `zones.json` mit `parent: "NO"`.
+  - Das Land wird weiter ausgegeben, als verbrauchsgewichtetes Mittel seiner Gebotszonen: Σ cᵢ·Lᵢ / Σ Lᵢ mit
+    Lᵢ = Erzeugung + Importe − Exporte. Die Produktion des Landes ist Σ Emissionen / Σ Erzeugung.
+  - App und Widget mit „NO“ funktionieren deshalb unverändert.
+- **Abfragen**: ca. 18 × A75 und 2 × ~45 × A11 je Lauf, eigenes Zeitbudget (`split_budget_seconds`). ENTSO-E
+  erlaubt 400 Anfragen pro Minute.
+- **Ohne Token** ändert sich nichts.
+- **Getestet**: Ohne echtes Token bisher nur mit generierten ENTSO-E-Dokumenten (`tests/test_bidding.py`).
+  Die EIC-Codes und Grenzen sollten nach dem Setzen des Tokens am ersten echten Lauf geprüft werden. Im Log
+  steht „Gebotszonen: aufgeteilt …“.
+
+## Speicherung
+
+Es gibt keine Datenbank und keine Daten-Commits. Gespeichert wird nur, was angezeigt oder zum Rechnen
+gebraucht wird. Jede Pages-Veröffentlichung ersetzt die vorige vollständig, es sammelt sich also nichts an.
+
+| Was | Wo | Umfang | Warum |
+|---|---|---|---|
+| `latest.json` | GitHub Pages | ein Eintrag je Zone (~6 KB) | App, Widget, Webseite |
+| `history/<zone>.json` | GitHub Pages | **rollendes 48-h-Fenster**: nur Zeit, Verbrauch (ganzzahlig), Qualität; ~5 KB je Zone | Diagramm |
+| `zones.json`, `schema.json`, `index.html` | GitHub Pages | klein | Zonenauswahl, Doku |
+| `state/cache.json` | GitHub Pages | Energy-Charts-Rohdaten der letzten 11 h (~80 KB) | Rotation wegen Ratenlimit (D2) |
+| Pages-Artefakt | GitHub Actions | 1 Tag Aufbewahrung | nur für das Deployment |
+| CI-Berichte, Validierung | GitHub Actions | 2–7 Tage | Fehlersuche |
+| App-Cache | Gerät (`filesDir/data`) | letzte `latest.json`, `zones.json`, Verlauf **nur der gewählten Zone** | Offline-Anzeige, Widget |
+
+Die Produktionsintensität steht nur in `latest.json` (aktueller Wert) und nicht in der Historie, weil kein
+Diagramm sie zeigt.

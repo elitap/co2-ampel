@@ -81,7 +81,8 @@ class Point:
     quality: Quality
 
     def to_json(self) -> dict[str, Any]:
-        return {"t": iso(self.t), "consumption": _r(self.consumption), "production": _r(self.production),
+        # Nur was angezeigt wird: Zeit, Verbrauchsintensität (ganzzahlig), Qualität.
+        return {"t": iso(self.t), "consumption": None if self.consumption is None else round(self.consumption),
                 "quality": self.quality.value}
 
 

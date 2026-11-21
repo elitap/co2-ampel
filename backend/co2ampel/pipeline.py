@@ -12,8 +12,9 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .bidding import aggregate_countries, apply_split, fetch_split
 from .cache import CacheEntry, EcCache
-from .config import Config
+from .config import Config, SplitCountry
 from .gapfill import Assembler, SourceData
 from .http import Budget, HttpClient
 from .models import Quality, Series, ZoneResult
@@ -206,7 +207,7 @@ def _latest(series_map: Mapping[str, Series] | None) -> datetime | None:
 
 
 def fill_from_entsoe(cfg: Config, data: SourceData, now: datetime, token: str,
-                     http: HttpClient | None = None) -> bool:
+                     http: HttpClient | None = None, skip: frozenset[str] = frozenset()) -> bool:
     """Fragt ENTSO-E nur für Zonen/Grenzen mit Lücken ab (je Zone und Datentyp höchstens einmal)."""
     client = en.EntsoeClient(token, http or HttpClient(), cfg.entsoe_base_url)
     budget = Budget(cfg.entsoe_budget_seconds)
@@ -216,21 +217,12 @@ def fill_from_entsoe(cfg: Config, data: SourceData, now: datetime, token: str,
     step = timedelta(minutes=cfg.step_minutes)
     used = False
 
-    def canon(psr: str | None) -> str | None:
-        return None if psr is None else cfg.mapping_entsoe.get(psr)
-
     def gen_map(doc: en.GenerationDoc) -> dict[str, Series]:
-        out: dict[str, Series] = {}
-        for psr, s in doc.generation.items():
-            k = canon(psr)
-            if k is None or k == "charge":
-                continue
-            tgt = out.setdefault(k, {})
-            for t, v in s.items():
-                tgt[t] = tgt.get(t, 0.0) + v
-        return out
+        return en.canonical_generation(doc, cfg.mapping_entsoe)
 
     for z in cfg.zones:
+        if z.code in skip:  # in Gebotszonen aufgeteilt, Daten stammen bereits aus ENTSO-E
+            continue
         last = _latest(data.ec_gen.get(z.code))
         if last is not None and last >= gap_before:
             continue
@@ -302,11 +294,11 @@ def tracing_config(cfg: Config) -> TracingConfig:
     )
 
 
-def compute(cfg: Config, data: SourceData, steps: list[datetime], last_known: dict[str, float]
-            ) -> dict[datetime, dict[str, ZoneResult]]:
+def compute(cfg: Config, data: SourceData, steps: list[datetime], last_known: dict[str, float],
+            zones: list[str] | None = None) -> dict[datetime, dict[str, ZoneResult]]:
     """Flow-Tracing für alle Zeitschritte (chronologisch, damit unbekannte Zonen den jeweils
     letzten bekannten Wert erhalten)."""
-    asm = Assembler(data, cfg.zone_codes, timedelta(hours=cfg.max_stale_hours), cfg.min_tech_coverage,
+    asm = Assembler(data, zones or cfg.zone_codes, timedelta(hours=cfg.max_stale_hours), cfg.min_tech_coverage,
                     cfg.significant_share)
     tcfg = tracing_config(cfg)
     known = dict(last_known)
@@ -363,12 +355,19 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
         stats = fetch_energy_charts(cfg, cache, now, bootstrap, http_factory)
     data = source_data_from_cache(cfg, cache)
     entsoe_used = False
+    split: dict[str, SplitCountry] = {}
+    if entsoe_token and cfg.bidding:
+        split = fetch_split(cfg, data, now, entsoe_token, http_factory())
+        entsoe_used = bool(split)
+    run_zones = apply_split(cfg, data, split)
     if entsoe_token:
-        entsoe_used = fill_from_entsoe(cfg, data, now, entsoe_token, http_factory())
+        entsoe_used = fill_from_entsoe(cfg, data, now, entsoe_token, http_factory(), frozenset(split)) or entsoe_used
     else:
         log.info("ENTSOE_API_TOKEN nicht gesetzt: nur Energy-Charts")
 
-    histories = {z: points_from_history(previous.history.get(z)) for z in cfg.zone_codes}
+    # Ausgabezonen: Länder, mit Token zusätzlich alle Gebotszonen (auch wenn gerade nicht aufgeteilt)
+    catalog = cfg.zone_codes + ([z.code for z in cfg.sub_zones] if entsoe_token else [])
+    histories = {z: points_from_history(previous.history.get(z)) for z in catalog}
     last_known: dict[str, float] = {}
     for z, pts in histories.items():
         if pts:
@@ -378,8 +377,9 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
 
     window_start = now - timedelta(hours=cfg.fetch_window_hours)
     steps = [window_start + i * step for i in range(int((now - window_start) / step) + 1)]
-    results = compute(cfg, data, steps, last_known)
-    per_zone: dict[str, dict[datetime, ZoneResult]] = {z: {} for z in cfg.zone_codes}
+    results = compute(cfg, data, steps, last_known, run_zones)
+    aggregate_countries(results, split, cfg.significant_share)
+    per_zone: dict[str, dict[datetime, ZoneResult]] = {z: {} for z in catalog}
     for t, rs in results.items():
         for z, r in rs.items():
             per_zone.setdefault(z, {})[t] = r
@@ -391,7 +391,7 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
     gen_at = iso(datetime.now(UTC))
     entries: list[dict[str, Any]] = []
     history_docs: dict[str, dict[str, Any]] = {}
-    for z in cfg.zone_codes:
+    for z in catalog:
         merged = merge_history(histories[z], per_zone.get(z, {}), now, cfg.history_hours)
         entry = keep_better(latest_entry(cfg, z, pick_latest(merged), now), prev_latest.get(z))
         if entry.get("timestamp") and now - datetime.fromisoformat(
@@ -410,7 +410,7 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
     for doc in history_docs.values():
         for p in doc["points"]:
             for key in ("consumption", "production"):
-                v = p[key]
+                v = p.get(key)
                 if v is not None and not cfg.plausibility.min_value <= v <= cfg.plausibility.max_value:
                     raise PlausibilityError(f"Historie {doc['zone']}: {key}={v} unplausibel")
 
@@ -420,7 +420,8 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
     }
     zones_doc = {
         "schema_version": 1, "kind": "zones", "generated_at": gen_at, "attribution": attr,
-        "zones": [{"zone": z.code, "name": z.name_de, "name_en": z.name_en} for z in cfg.zones],
+        "zones": [{"zone": c, "name": cfg.zone(c).name_de, "name_en": cfg.zone(c).name_en,
+                   **({"parent": par} if (par := cfg.zone(c).parent) else {})} for c in catalog],
     }
     cache_doc = {
         "schema_version": 1, "kind": "cache", "generated_at": gen_at,

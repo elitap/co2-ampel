@@ -3,6 +3,7 @@
 #   energy_charts:  Länder-Code der Energy-Charts API
 #   alias:          Nachbar-ID, mit der Energy-Charts (cbpf) diese Zone bezeichnet
 #   entsoe:         EIC-Code für ENTSO-E (Erzeugung A75/A69/A71 und Flüsse A11)
+#   bzn:            EIC an Gebotszonen-Grenzen (A11), falls abweichend (DE: Gebotszone DE-LU)
 #
 # Energy-Charts liefert Erzeugung und Grenzflüsse nur je Land. Länder mit mehreren Gebotszonen
 # (NO, SE, DK, IT) werden daher als eine Zone geführt; Deutschland und Luxemburg (gemeinsame
@@ -19,7 +20,7 @@ zones:
   - {code: CH, name_de: Schweiz,                 name_en: Switzerland,            energy_charts: ch, alias: switzerland,        entsoe: 10YCH-SWISSGRIDZ}
   - {code: CY, name_de: Zypern,                  name_en: Cyprus,                 energy_charts: cy, alias: cyprus,             entsoe: 10YCY-1001A0003J}
   - {code: CZ, name_de: Tschechien,              name_en: Czechia,                energy_charts: cz, alias: czech_republic,     entsoe: 10YCZ-CEPS-----N}
-  - {code: DE, name_de: Deutschland,             name_en: Germany,                energy_charts: de, alias: germany,            entsoe: 10Y1001A1001A83F}
+  - {code: DE, name_de: Deutschland,             name_en: Germany,                energy_charts: de, alias: germany,            entsoe: 10Y1001A1001A83F, bzn: 10Y1001A1001A82H}
   - {code: DK, name_de: Dänemark,                name_en: Denmark,                energy_charts: dk, alias: denmark,            entsoe: 10Y1001A1001A65H}
   - {code: EE, name_de: Estland,                 name_en: Estonia,                energy_charts: ee, alias: estonia,            entsoe: 10Y1001A1001A39I}
   - {code: ES, name_de: Spanien,                 name_en: Spain,                  energy_charts: es, alias: spain,              entsoe: 10YES-REE------0}

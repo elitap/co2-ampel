@@ -99,10 +99,18 @@ class Co2Repository(
         download("history/$zone.json")?.let { text ->
             Co2Parser.parseHistory(text)?.let {
                 store(name, text)
+                pruneHistories(keep = name)
                 return it
             }
         }
         return readCache(name)?.let { (text, _) -> Co2Parser.parseHistory(text) }
+    }
+
+    /** Nur den Verlauf der aktuell gewählten Zone vorhalten. */
+    private suspend fun pruneHistories(keep: String) = withContext(Dispatchers.IO) {
+        runCatching {
+            cacheDir.listFiles { f -> f.name.startsWith("history_") && f.name != keep }?.forEach { it.delete() }
+        }
     }
 
     companion object {

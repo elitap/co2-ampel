@@ -49,6 +49,7 @@
 <div id="hints"></div>
 
 <h2>Letzte 48 Stunden</h2>
+<p class="muted">Maus oder Finger auf das Diagramm halten (oder Pfeiltasten), um Zeit und Wert zu sehen.</p>
 <div id="chart" class="muted">Lädt …</div>
 
 <h2>Alle Länder</h2>
@@ -129,14 +130,15 @@ async function loadHistory(code, th) {
     const r = await fetch(`history/${encodeURIComponent(code)}.json`, { cache: "no-cache" });
     const h = await r.json();
     if ($("zone").value !== code) return;
-    const pts = h.points.filter(p => p.consumption != null).map(p => [new Date(p.t).getTime(), p.consumption]);
+    const pts = h.points.filter(p => p.consumption != null).map(p => [new Date(p.t).getTime(), p.consumption, p.quality]);
     if (pts.length < 2) { box.textContent = "Kein Verlauf verfügbar."; return; }
     drawChart(box, pts, th);
   } catch (e) { box.textContent = "Verlauf konnte nicht geladen werden."; }
 }
 
 function drawChart(box, pts, th) {
-  const W = 700, H = 240, L = 44, R = 10, T = 10, B = 28;
+  // pts: [zeit_ms, wert, qualität]
+  const W = 700, H = 240, L = 44, R = 10, T = 26, B = 28;
   const t0 = pts[0][0], t1 = pts[pts.length - 1][0];
   const top = Math.max(th.red_above, ...pts.map(p => p[1])) * 1.08;
   const x = t => L + (t - t0) / Math.max(1, t1 - t0) * (W - L - R);
@@ -144,10 +146,13 @@ function drawChart(box, pts, th) {
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("tabindex", "0");
   svg.setAttribute("role", "img");
+  svg.style.touchAction = "pan-y";
+  svg.style.cursor = "crosshair";
   const vals = pts.map(p => p[1]);
-  svg.setAttribute("aria-label", `Verbrauchsintensität von ${Math.round(Math.min(...vals))} bis ${Math.round(Math.max(...vals))} g/kWh`);
-  const el = (n, a, txt) => { const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); if (txt) e.textContent = txt; svg.append(e); };
+  svg.setAttribute("aria-label", `Verbrauchsintensität von ${Math.round(Math.min(...vals))} bis ${Math.round(Math.max(...vals))} g/kWh. Mit Pfeiltasten durch die Werte gehen.`);
+  const el = (n, a, txt, parent = svg) => { const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; parent.append(e); return e; };
   for (const [v, col] of [[th.green_below, COLORS.green], [th.red_above, COLORS.red]]) {
     el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: col, "stroke-dasharray": "6 5", "stroke-width": 1.5 });
     el("text", { x: 2, y: y(v) + 4, "font-size": 11, fill: "currentColor" }, Math.round(v));
@@ -161,6 +166,42 @@ function drawChart(box, pts, th) {
   el("path", { d, fill: "none", stroke: "var(--line)", "stroke-width": 2.5, "stroke-linejoin": "round" });
   el("text", { x: L, y: H - 8, "font-size": 11, fill: "currentColor" }, fmtTime(t0));
   el("text", { x: W - R, y: H - 8, "font-size": 11, fill: "currentColor", "text-anchor": "end" }, fmtTime(t1));
+
+  // Interaktion: nächster Punkt zur Maus/zum Finger, Pfeiltasten für Tastatur
+  const g = el("g", { visibility: "hidden", "pointer-events": "none" });
+  const vline = el("line", { y1: T, y2: H - B, stroke: "currentColor", "stroke-opacity": .5 }, null, g);
+  const dot = el("circle", { r: 5, stroke: "var(--bg)", "stroke-width": 2 }, null, g);
+  const label = el("text", { y: 16, "font-size": 13, "font-weight": 600, fill: "currentColor" }, "", g);
+  let idx = pts.length - 1;
+  const show = i => {
+    idx = Math.max(0, Math.min(pts.length - 1, i));
+    const [t, v, q] = pts[idx];
+    const px = x(t);
+    vline.setAttribute("x1", px); vline.setAttribute("x2", px);
+    dot.setAttribute("cx", px); dot.setAttribute("cy", y(v)); dot.setAttribute("fill", COLORS[levelOf(v, th)]);
+    label.textContent = `${fmtTime(t)} · ${Math.round(v)} g/kWh${q && q !== "measured" ? " (" + (QUALITY[q] || q) + ")" : ""}`;
+    const right = px > W / 2;
+    label.setAttribute("x", right ? px - 8 : px + 8);
+    label.setAttribute("text-anchor", right ? "end" : "start");
+    g.setAttribute("visibility", "visible");
+  };
+  const nearest = evt => {
+    const r = svg.getBoundingClientRect();
+    const sx = (evt.clientX - r.left) / r.width * W;
+    const t = t0 + (sx - L) / (W - L - R) * (t1 - t0);
+    let best = 0;
+    for (let i = 1; i < pts.length; i++) if (Math.abs(pts[i][0] - t) < Math.abs(pts[best][0] - t)) best = i;
+    return best;
+  };
+  svg.addEventListener("pointermove", e => show(nearest(e)));
+  svg.addEventListener("pointerdown", e => show(nearest(e)));
+  svg.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") g.setAttribute("visibility", "hidden"); });
+  svg.addEventListener("focus", () => show(idx));
+  svg.addEventListener("blur", () => g.setAttribute("visibility", "hidden"));
+  svg.addEventListener("keydown", e => {
+    const step = { ArrowLeft: -1, ArrowRight: 1, PageDown: -4, PageUp: 4, Home: -1e9, End: 1e9 }[e.key];
+    if (step !== undefined) { e.preventDefault(); show(idx + step); }
+  });
   box.replaceChildren(svg);
 }
 
@@ -169,12 +210,14 @@ async function init() {
     const r = await fetch("latest.json", { cache: "no-cache" });
     latest = await r.json();
   } catch (e) { $("level").textContent = "Daten konnten nicht geladen werden."; return; }
-  const zones = [...latest.zones].sort((a, b) => a.name.localeCompare(b.name, "de"));
+  const parentOf = z => (z.zone.includes("-") && latest.zones.some(c => c.zone === z.zone.split("-")[0])) ? z.zone.split("-")[0] : null;
+  const countries = latest.zones.filter(z => !parentOf(z)).sort((a, b) => a.name.localeCompare(b.name, "de"));
+  const zones = countries.flatMap(c => [c, ...latest.zones.filter(s => parentOf(s) === c.zone).sort((a, b) => a.zone.localeCompare(b.zone))]);
   const sel = $("zone");
   for (const z of zones) {
     const o = document.createElement("option");
     o.value = z.zone;
-    o.textContent = `${z.name} (${z.zone})`;
+    o.textContent = (parentOf(z) ? "\u00a0\u00a0\u2013 " : "") + `${z.name} (${z.zone})`;
     sel.append(o);
   }
   const tb = document.querySelector("#t tbody");
