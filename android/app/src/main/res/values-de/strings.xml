@@ -72,6 +72,4 @@
     <string name="widget_small_description">Ampelpunkt und Wert</string>
     <string name="widget_medium_description">Ampel, Wert, Zone und Uhrzeit</string>
     <string name="widget_config_title">Zone für das Widget wählen</string>
-    <string name="widget_loading">Lädt …</string>
-    <string name="widget_time">um %1$s</string>
 </resources>

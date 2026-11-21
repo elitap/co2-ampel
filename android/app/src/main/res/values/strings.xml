@@ -72,6 +72,4 @@
     <string name="widget_small_description">Traffic light dot and value</string>
     <string name="widget_medium_description">Traffic light, value, zone and time</string>
     <string name="widget_config_title">Choose zone for widget</string>
-    <string name="widget_loading">Loading…</string>
-    <string name="widget_time">at %1$s</string>
 </resources>
