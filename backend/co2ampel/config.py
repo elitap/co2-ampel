@@ -94,6 +94,9 @@ class Config:
     external_intensity: dict[str, float] = field(default_factory=dict)
     default_external_intensity: float = 450
     entsoe_split_budget_seconds: float = 300
+    entsoe_fill_age_hours: float = 1
+    apg_enabled: bool = False
+    apg_base_url: str = "https://transparency.apg.at"
     bidding: tuple[SplitCountry, ...] = ()
 
     @property
@@ -207,6 +210,9 @@ def load_config(config_dir: Path = DEFAULT_CONFIG_DIR) -> Config:
         external_intensity={str(k): float(v) for k, v in (ext.get("zones") or {}).items()},
         default_external_intensity=float(ext.get("default", 450)),
         entsoe_split_budget_seconds=float(en.get("split_budget_seconds", 300)),
+        entsoe_fill_age_hours=float(en.get("fill_if_older_than_hours", 1)),
+        apg_enabled=bool((st_raw.get("apg") or {}).get("enabled", False)),
+        apg_base_url=str((st_raw.get("apg") or {}).get("base_url", "https://transparency.apg.at")),
         bidding=bidding,
     )
 

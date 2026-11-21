@@ -17,7 +17,7 @@ import jsonschema
 
 from .config import Config
 from .models import Quality, ZoneResult
-from .sources import energy_charts, entsoe
+from .sources import apg, energy_charts, entsoe
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def parse_iso(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
 
 
-def attribution(entsoe_used: bool) -> list[dict[str, str]]:
+def attribution(entsoe_used: bool, apg_used: bool = False) -> list[dict[str, str]]:
     out = [{
         "source": energy_charts.ATTRIBUTION,
         "license": "CC BY 4.0",
@@ -48,6 +48,12 @@ def attribution(entsoe_used: bool) -> list[dict[str, str]]:
             "source": entsoe.ATTRIBUTION,
             "license": "ENTSO-E Transparency Platform Terms and Conditions",
             "url": "https://transparency.entsoe.eu",
+        })
+    if apg_used:
+        out.append({
+            "source": apg.ATTRIBUTION,
+            "license": "mit Zustimmung von APG",
+            "url": "https://transparency.apg.at",
         })
     return out
 

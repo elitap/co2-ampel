@@ -32,6 +32,7 @@ from .output import (
     validate,
     write_json,
 )
+from .sources import apg
 from .sources import energy_charts as ec
 from .sources import entsoe as en
 from .tracing import NoSupplyError, TracingConfig, TracingError, trace
@@ -213,7 +214,8 @@ def fill_from_entsoe(cfg: Config, data: SourceData, now: datetime, token: str,
     budget = Budget(cfg.entsoe_budget_seconds)
     start = now - timedelta(hours=cfg.fetch_window_hours)
     end = now + timedelta(hours=1)
-    gap_before = now - timedelta(hours=cfg.max_stale_hours)
+    gap_before = now - timedelta(hours=cfg.entsoe_fill_age_hours)  # Ist-Werte: ENTSO-E oft aktueller
+    forecast_before = now - timedelta(hours=cfg.max_stale_hours)  # Prognosen erst bei echter Lücke
     step = timedelta(minutes=cfg.step_minutes)
     used = False
 
@@ -233,8 +235,8 @@ def fill_from_entsoe(cfg: Config, data: SourceData, now: datetime, token: str,
             if body:
                 data.en_gen[z.code] = gen_map(en.parse_generation(body, step))
                 used = used or bool(data.en_gen[z.code])
-            last_en = _latest(data.en_gen.get(z.code))
-            if last_en is not None and last_en >= gap_before:
+            last_en = max((t for t in (_latest(data.en_gen.get(z.code)), last) if t is not None), default=None)
+            if last_en is not None and last_en >= forecast_before:
                 continue
             body = client.wind_solar_forecast(z.entsoe, start, end, budget)
             if body:
@@ -362,6 +364,16 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
     run_zones = apply_split(cfg, data, split)
     if entsoe_token:
         entsoe_used = fill_from_entsoe(cfg, data, now, entsoe_token, http_factory(), frozenset(split)) or entsoe_used
+    apg_used = False
+    if cfg.apg_enabled and "AT" in run_zones:
+        apg_gen = apg.fetch_generation(apg.ApgClient(http_factory(), cfg.apg_base_url), now,
+                                       timedelta(hours=cfg.fetch_window_hours), cfg.mapping_entsoe)
+        if apg_gen:
+            target = data.en_gen.setdefault("AT", {})  # sekundäre Ist-Quelle: füllt den aktuellen Rand
+            for k, s in apg_gen.items():
+                target.setdefault(k, {}).update(s)
+            apg_used = True
+        log.info("APG: %d Technologien, genutzt=%s", len(apg_gen), apg_used)
     else:
         log.info("ENTSOE_API_TOKEN nicht gesetzt: nur Energy-Charts")
 
@@ -387,7 +399,7 @@ def run(cfg: Config, out_dir: Path, previous: PreviousState, now: datetime | Non
                if not any(r.quality is not Quality.UNKNOWN for r in per_zone.get(z, {}).values())]
 
     prev_latest = {e.get("zone"): e for e in (previous.latest or {}).get("zones", []) if isinstance(e, dict)}
-    attr = attribution(entsoe_used)
+    attr = attribution(entsoe_used, apg_used)
     gen_at = iso(datetime.now(UTC))
     entries: list[dict[str, Any]] = []
     history_docs: dict[str, dict[str, Any]] = {}

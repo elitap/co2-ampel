@@ -38,6 +38,15 @@ entsoe:
   # Gebotszonen (bidding_zones.yaml): A75 je Gebotszone + A11 je Grenze, ca. 110 Anfragen pro Lauf
   # (ENTSO-E erlaubt 400/min).
   split_budget_seconds: 300
+  # ENTSO-E-Ist-Werte (A75/A11) abfragen, wenn die Energy-Charts-Daten einer Zone/Grenze älter sind als
+  # (ENTSO-E ist oft ~1 h aktuell, Energy-Charts 2–4 h). Prognosen (A69/A71) erst ab max_stale_hours.
+  fill_if_older_than_hours: 1
+
+# APG-Transparenzplattform (AT, ca. 1 h Verzug). AUS, bis APG die Weiterverwendung schriftlich erlaubt
+# (keine Lizenzangabe; siehe docs/DECISIONS.md, Abschnitt APG).
+apg:
+  enabled: false
+  base_url: https://transparency.apg.at
 
 # Intensität von Regionen außerhalb des Datenbereichs (gCO2eq/kWh), Annahmen auf Basis
 # veröffentlichter Jahresmittel (Größenordnung), siehe docs/DECISIONS.md.

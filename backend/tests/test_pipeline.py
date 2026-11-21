@@ -174,7 +174,8 @@ def test_entsoe_forecast_when_actuals_are_old(tmp_path: Path) -> None:
     at = next(z for z in res.latest["zones"] if z["zone"] == "AT")
     assert at["timestamp"] == "2026-11-21T17:45:00Z"  # letzter Schritt aus den A69/A71-Prognosen
     assert at["quality"] in ("forecast", "estimated", "stale")
-    doc_types = [p["documentType"] for u, p in fake.calls if "entsoe" in u and p.get("in_Domain") == "10YAT-APG------L"]
+    doc_types = [p["documentType"] for u, p in fake.calls
+                 if "entsoe" in u and p.get("in_Domain") == "10YAT-APG------L" and p["documentType"] != "A11"]
     assert sorted(doc_types) == ["A69", "A71", "A75"]
 
 

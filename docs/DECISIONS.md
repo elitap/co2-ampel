@@ -249,3 +249,32 @@ gebraucht wird. Jede Pages-Veröffentlichung ersetzt die vorige vollständig, es
 
 Die Produktionsintensität steht nur in `latest.json` (aktueller Wert) und nicht in der Historie, weil kein
 Diagramm sie zeigt.
+
+## Aktualität
+
+### F1 – ENTSO-E als frischere Ist-Quelle
+Energy-Charts übernimmt die Netzbetreiber-Daten mit 2–4 h Verzug, ENTSO-E hat sie oft nach ~1 h. Mit Token
+werden ENTSO-E-Ist-Werte (A75, A11) deshalb schon abgefragt, wenn die Energy-Charts-Daten einer Zone oder
+Grenze älter als 1 h sind (`entsoe.fill_if_older_than_hours`). Im Lückenfüllen hat Energy-Charts Vorrang,
+ENTSO-E belegt den jüngeren Rand. Prognosen (A69/A71) kommen erst bei einer echten Lücke > 3 h dazu.
+
+### F2 – APG (Österreich), standardmäßig aus
+Die APG-Transparenzplattform (`/api/v1/AGPT/Data/English/PT15M/<Tag>/<Tag+1>`) liefert die Erzeugung je
+Produktionstyp für AT mit ca. **1 h Verzug**. Am 21.11. um 22:52 UTC reichte sie bis 22:00 UTC, Energy-Charts
+nur bis 18:00 UTC. Die Werte sind identisch mit Energy-Charts, das sie später übernimmt.
+
+**Technik**:
+- Spalten sind ENTSO-E-PSR-Typen, B10 ist netto (negativ = Laden).
+- Abgefragt wird ein Tag in Ortszeit Wien, 1–2 Anfragen pro Lauf.
+- Die Zeitstempel werden aus dem Tagesbeginn und dem Zeilenindex berechnet, damit Tage mit Zeitumstellung
+  (92 bzw. 100 Zeilen) stimmen.
+
+**Lizenz**: APG nennt **keine Lizenz** für die Weiterverwendung. Die allgemeinen Nutzungsbedingungen von
+apg.at behalten alle Rechte vor und verlangen für die Nutzung eine vorherige schriftliche Zustimmung. Ob das
+für Markttransparenzdaten gilt, ist unklar. Daher gilt:
+- Die Anbindung ist fertig und getestet, aber mit `apg.enabled: false` **abgeschaltet**.
+- Die Tests nutzen synthetische Antworten im APG-Format, damit keine APG-Daten im öffentlichen Repo liegen.
+- Einschalten erst nach schriftlicher Zustimmung von APG (marktinformation@apg.at). Ist sie erteilt, nennt
+  `attribution` APG automatisch.
+- Rechtlich unproblematische Alternative: dieselben Daten über ENTSO-E (F1). APG meldet sie dort nach
+  VO (EU) 543/2013.

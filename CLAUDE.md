@@ -10,7 +10,8 @@ Details und Begründungen stehen in `docs/DECISIONS.md`. Bitte dort nachlesen, b
   - `tracing.py` – lineares System (numpy)
   - `gapfill.py` – Lückenregeln
   - `bidding.py` – Gebotszonen, nur mit ENTSO-E-Token
-  - `sources/energy_charts.py`, `sources/entsoe.py` – Datenquellen (ENTSO-E per defusedxml)
+  - `sources/energy_charts.py`, `sources/entsoe.py`, `sources/apg.py` – Datenquellen (ENTSO-E per defusedxml;
+    APG aus, bis APG die Weiterverwendung erlaubt)
   - `cache.py` – Rohdaten-Cache für die Rotation
   - `output.py` – Schema-Validierung, Zusammenführen, Plausibilität
   - `validation.py` – erzeugt `docs/VALIDATION.md`
@@ -18,6 +19,7 @@ Details und Begründungen stehen in `docs/DECISIONS.md`. Bitte dort nachlesen, b
   - `config/` – YAML-Konfiguration:
     - `zones.yaml` – Zonen und externe Regionen
     - `bidding_zones.yaml` – Gebotszonen
+  - Unter Windows braucht `zoneinfo` das Paket `tzdata` (ist Abhängigkeit).
     - `emission_factors.yaml` – Emissionsfaktoren und Technologie-Zuordnung
     - `traffic_light.yaml` – Ampelgrenzen
     - `settings.yaml`
@@ -78,8 +80,10 @@ python -m co2ampel run --out ../public --previous-url https://elitap.github.io/c
 ## Offene Punkte
 - **ENTSO-E-Token fehlt noch** (`gh secret set ENTSOE_API_TOKEN`). Ohne Token ist DK `unknown`, und Gebotszonen
   sind inaktiv. Nach dem Setzen den ersten Lauf prüfen: Log „Gebotszonen: aufgeteilt …“, EIC-Codes in `bidding_zones.yaml`.
-- **Aktualität:** Messwerte sind 2–4 h alt. Geplant sind:
-  1. Hochrechnung der aktuellen Stunde mit Prognosen (`forecast`)
-  2. Echtzeitquelle APG für AT
+- **Aktualität:** Mit Energy-Charts allein sind Messwerte 2–4 h alt.
+  - Mit ENTSO-E-Token wird es ~1 h, weil ENTSO-E ab 1 h Alter die Lücke füllt.
+  - APG (AT, ~1 h) ist fertig, aber per `apg.enabled: false` aus. Erst einschalten, wenn APG schriftlich zustimmt
+    (Anfrage an marktinformation@apg.at).
+  - Noch offen: Hochrechnung der aktuellen Stunde mit Prognosen (`forecast`).
 - **Bericht Electricity Maps:** liegt nach 07:00 UTC am 22.11.2026 im letzten `em-validation`-Lauf
   (Job-Zusammenfassung und Artefakt `em-report`).
