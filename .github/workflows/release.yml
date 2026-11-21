@@ -29,7 +29,8 @@ jobs:
           cache-read-only: true
 
       - name: Tests und Lint
-        run: ./gradlew --no-daemon lintRelease testReleaseUnitTest
+        # AGP 9 legt Unit-Tests standardmäßig nur für den Debug-Build-Typ an.
+        run: ./gradlew --no-daemon lintRelease testDebugUnitTest
 
       - name: Signierte Release-APK bauen
         env:
