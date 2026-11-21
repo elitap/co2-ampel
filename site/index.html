@@ -3,42 +3,205 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CO2-Ampel – Daten</title>
+<title>CO2-Ampel</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  :root { color-scheme: light dark; --bg: #fbfefb; --fg: #191c1a; --muted: #5b625d; --card: #eef3ef; --line: #2e6b45; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #191c1a; --fg: #e1e3df; --muted: #a9b1ab; --card: #242a26; --line: #94d5a8; } }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); max-width: 46rem; margin: 0 auto; padding: 1rem; line-height: 1.5; }
+  h1 { margin: .2rem 0 1rem; font-size: 1.6rem; }
+  label { font-weight: 600; margin-right: .5rem; }
+  select { font-size: 1.05rem; padding: .35rem .5rem; border-radius: 8px; max-width: 100%; }
+  .main { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; margin: 1.5rem 0; }
+  .circle { width: 11rem; height: 11rem; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; }
+  .circle .v { font-size: 3.2rem; font-weight: 700; line-height: 1; }
+  .level { font-size: 1.4rem; font-weight: 600; }
+  .cards { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: .6rem; }
+  .card { background: var(--card); border-radius: 10px; padding: .5rem .8rem; min-width: 9rem; }
+  .card b { font-size: 1.25rem; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  .hint { background: var(--card); border-left: 4px solid #f2c200; padding: .5rem .8rem; border-radius: 6px; margin: .5rem 0; }
+  svg { width: 100%; height: auto; display: block; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; } td, th { padding: .25rem .5rem; text-align: left; border-bottom: 1px solid #8883; }
+  tr.sel { background: var(--card); }
+  .dot { display: inline-block; width: .8em; height: .8em; border-radius: 50%; vertical-align: -.05em; }
   code { background: #8882; padding: .1em .3em; border-radius: 4px; }
-  table { border-collapse: collapse; } td, th { padding: .2rem .6rem; text-align: left; }
-  .dot { display: inline-block; width: .8em; height: .8em; border-radius: 50%; }
+  details { margin-top: 1.5rem; }
 </style>
 </head>
 <body>
 <h1>CO2-Ampel</h1>
-<p>Verbrauchsbasierte CO2-Intensität (gCO2eq/kWh, Lebenszyklus) europäischer Stromzonen, berechnet alle
-15&nbsp;Minuten per Flow-Tracing. Quellcode und Methodik:
-<a href="https://github.com/elitap/co2-ampel">github.com/elitap/co2-ampel</a>.</p>
-<ul>
-  <li><a href="latest.json"><code>latest.json</code></a> – aktueller Wert je Zone</li>
-  <li><a href="zones.json"><code>zones.json</code></a> – Liste der Zonen</li>
-  <li><code>history/&lt;zone&gt;.json</code> – letzte 48&nbsp;h, z.&nbsp;B. <a href="history/AT.json">history/AT.json</a></li>
-  <li><a href="schema.json"><code>schema.json</code></a> – JSON-Schema</li>
-</ul>
-<table id="t"><thead><tr><th>Zone</th><th>Verbrauch</th><th>Produktion</th><th>Qualität</th><th>Zeit (UTC)</th></tr></thead><tbody></tbody></table>
-<p><small>Daten: Energy-Charts (Fraunhofer ISE), CC BY 4.0; ggf. ENTSO-E Transparency Platform.</small></p>
+<div>
+  <label for="zone">Land</label>
+  <select id="zone" aria-label="Land wählen"></select>
+</div>
+
+<div class="main" aria-live="polite">
+  <div class="circle" id="circle"><span class="v" id="value">–</span><span id="unit">gCO₂eq/kWh</span></div>
+  <div>
+    <div class="level" id="level">Lädt …</div>
+    <div class="cards">
+      <div class="card">Verbrauch<br><b id="cons">–</b> <span class="muted">g/kWh</span><br><span class="muted">inkl. Importe</span></div>
+      <div class="card">Produktion<br><b id="prod">–</b> <span class="muted">g/kWh</span><br><span class="muted">nur Inlandserzeugung</span></div>
+    </div>
+    <p class="muted" id="time"></p>
+  </div>
+</div>
+<div id="hints"></div>
+
+<h2>Letzte 48 Stunden</h2>
+<div id="chart" class="muted">Lädt …</div>
+
+<h2>Alle Länder</h2>
+<table id="t"><thead><tr><th>Land</th><th>Verbrauch</th><th>Produktion</th><th>Qualität</th><th>Messzeit</th></tr></thead><tbody></tbody></table>
+
+<details>
+  <summary>Methodik, Daten und Quellen</summary>
+  <p>Verbrauchsbasierte CO2-Intensität (gCO2eq/kWh, Lebenszyklus nach IPCC AR5), alle 15 Minuten per Flow-Tracing
+  berechnet: Importierter Strom trägt die Intensität des exportierenden Landes. Die Quellen veröffentlichen die
+  Messwerte je nach Land mit 1–4 Stunden Verzug; angezeigt wird der jüngste gemessene Wert mit seiner Messzeit.
+  Code und Methodik: <a href="https://github.com/elitap/co2-ampel">github.com/elitap/co2-ampel</a>.</p>
+  <ul>
+    <li><a href="latest.json"><code>latest.json</code></a> – aktueller Wert je Zone</li>
+    <li><a href="zones.json"><code>zones.json</code></a> – Liste der Zonen</li>
+    <li><code>history/&lt;zone&gt;.json</code> – letzte 48 h, z. B. <a href="history/AT.json">history/AT.json</a></li>
+    <li><a href="schema.json"><code>schema.json</code></a> – JSON-Schema</li>
+  </ul>
+</details>
+<p class="muted" id="attr">Daten: Energy-Charts (Fraunhofer ISE), energy-charts.info, CC BY 4.0.</p>
+
 <script>
-fetch("latest.json").then(r => r.json()).then(d => {
-  const c = {green: "#1e7e34", yellow: "#f2c200", red: "#c62828", unknown: "#888"};
+"use strict";
+const COLORS = { green: "#1e7e34", yellow: "#f2c200", red: "#c62828", unknown: "#757575" };
+const TEXT = { green: "Grün – niedrig", yellow: "Gelb – mittel", red: "Rot – hoch", unknown: "Keine Daten" };
+const QUALITY = { measured: "gemessen", forecast: "Prognose", stale: "veraltet", estimated: "geschätzt", unknown: "unbekannt" };
+const HINT = {
+  forecast: "Teilweise auf Prognosen gestützt.",
+  stale: "Daten veraltet – letzter bekannter Wert wird angezeigt.",
+  estimated: "Geschätzt: wesentliche Importe aus Ländern ohne aktuelle Daten.",
+  unknown: "Für dieses Land liegen keine aktuellen Daten vor."
+};
+const $ = id => document.getElementById(id);
+const fmtTime = t => new Date(t).toLocaleString("de-AT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+function ago(t) {
+  const m = Math.max(0, Math.round((Date.now() - new Date(t)) / 60000));
+  if (m < 1) return "gerade eben";
+  if (m < 60) return `vor ${m} Minute${m === 1 ? "" : "n"}`;
+  const h = Math.floor(m / 60);
+  return h < 48 ? `vor ${h} Stunde${h === 1 ? "" : "n"}` : `vor ${Math.floor(h / 24)} Tagen`;
+}
+function levelOf(v, th) {
+  if (v == null) return "unknown";
+  return v < th.green_below ? "green" : v > th.red_above ? "red" : "yellow";
+}
+const num = v => v == null ? "–" : Math.round(v).toString();
+
+let latest = null;
+
+function show(code) {
+  const z = latest.zones.find(x => x.zone === code) || latest.zones[0];
+  const th = latest.thresholds;
+  const lvl = levelOf(z.consumption, th);
+  const c = $("circle");
+  c.style.background = COLORS[lvl];
+  c.style.color = lvl === "yellow" ? "#1a1a1a" : "#fff";
+  $("value").textContent = num(z.consumption);
+  $("level").textContent = TEXT[lvl];
+  $("cons").textContent = num(z.consumption);
+  $("prod").textContent = num(z.production);
+  $("time").textContent = z.timestamp ? `Messzeit ${fmtTime(z.timestamp)} (${ago(z.timestamp)}) · Qualität: ${QUALITY[z.quality] || z.quality}` : "";
+  const hints = $("hints");
+  hints.replaceChildren();
+  if (HINT[z.quality]) {
+    const d = document.createElement("div");
+    d.className = "hint";
+    d.textContent = HINT[z.quality];
+    hints.append(d);
+  }
+  document.querySelectorAll("#t tbody tr").forEach(tr => tr.classList.toggle("sel", tr.dataset.zone === z.zone));
+  location.hash = z.zone;
+  try { localStorage.setItem("zone", z.zone); } catch (e) {}
+  loadHistory(z.zone, th);
+}
+
+async function loadHistory(code, th) {
+  const box = $("chart");
+  try {
+    const r = await fetch(`history/${encodeURIComponent(code)}.json`, { cache: "no-cache" });
+    const h = await r.json();
+    if ($("zone").value !== code) return;
+    const pts = h.points.filter(p => p.consumption != null).map(p => [new Date(p.t).getTime(), p.consumption]);
+    if (pts.length < 2) { box.textContent = "Kein Verlauf verfügbar."; return; }
+    drawChart(box, pts, th);
+  } catch (e) { box.textContent = "Verlauf konnte nicht geladen werden."; }
+}
+
+function drawChart(box, pts, th) {
+  const W = 700, H = 240, L = 44, R = 10, T = 10, B = 28;
+  const t0 = pts[0][0], t1 = pts[pts.length - 1][0];
+  const top = Math.max(th.red_above, ...pts.map(p => p[1])) * 1.08;
+  const x = t => L + (t - t0) / Math.max(1, t1 - t0) * (W - L - R);
+  const y = v => T + (1 - v / top) * (H - T - B);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("role", "img");
+  const vals = pts.map(p => p[1]);
+  svg.setAttribute("aria-label", `Verbrauchsintensität von ${Math.round(Math.min(...vals))} bis ${Math.round(Math.max(...vals))} g/kWh`);
+  const el = (n, a, txt) => { const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); if (txt) e.textContent = txt; svg.append(e); };
+  for (const [v, col] of [[th.green_below, COLORS.green], [th.red_above, COLORS.red]]) {
+    el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: col, "stroke-dasharray": "6 5", "stroke-width": 1.5 });
+    el("text", { x: 2, y: y(v) + 4, "font-size": 11, fill: "currentColor" }, Math.round(v));
+  }
+  el("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, stroke: "currentColor", "stroke-opacity": .3 });
+  let d = "", prev = null;
+  for (const [t, v] of pts) {
+    d += (prev === null || t - prev > 45 * 60000 ? "M" : "L") + x(t).toFixed(1) + "," + y(v).toFixed(1);
+    prev = t;
+  }
+  el("path", { d, fill: "none", stroke: "var(--line)", "stroke-width": 2.5, "stroke-linejoin": "round" });
+  el("text", { x: L, y: H - 8, "font-size": 11, fill: "currentColor" }, fmtTime(t0));
+  el("text", { x: W - R, y: H - 8, "font-size": 11, fill: "currentColor", "text-anchor": "end" }, fmtTime(t1));
+  box.replaceChildren(svg);
+}
+
+async function init() {
+  try {
+    const r = await fetch("latest.json", { cache: "no-cache" });
+    latest = await r.json();
+  } catch (e) { $("level").textContent = "Daten konnten nicht geladen werden."; return; }
+  const zones = [...latest.zones].sort((a, b) => a.name.localeCompare(b.name, "de"));
+  const sel = $("zone");
+  for (const z of zones) {
+    const o = document.createElement("option");
+    o.value = z.zone;
+    o.textContent = `${z.name} (${z.zone})`;
+    sel.append(o);
+  }
   const tb = document.querySelector("#t tbody");
-  for (const z of d.zones) {
+  for (const z of zones) {
     const tr = document.createElement("tr");
-    const cells = [z.zone + " " + z.name, z.consumption ?? "–", z.production ?? "–", z.quality, z.timestamp ?? "–"];
+    tr.dataset.zone = z.zone;
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", () => { sel.value = z.zone; show(z.zone); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    const lvl = levelOf(z.consumption, latest.thresholds);
+    const cells = [`${z.name} (${z.zone})`, num(z.consumption), num(z.production), QUALITY[z.quality] || z.quality, z.timestamp ? fmtTime(z.timestamp) : "–"];
     cells.forEach((v, i) => {
       const td = document.createElement("td");
-      if (i === 1) { const s = document.createElement("span"); s.className = "dot"; s.style.background = c[z.level]; td.append(s, " "); }
-      td.append(String(v)); tr.append(td);
+      if (i === 1) { const s = document.createElement("span"); s.className = "dot"; s.style.background = COLORS[lvl]; s.title = TEXT[lvl]; td.append(s, " "); }
+      td.append(v);
+      tr.append(td);
     });
     tb.append(tr);
   }
-}).catch(() => {});
+  if (latest.attribution) $("attr").textContent = "Daten: " + latest.attribution.map(a => a.source).join(" · ");
+  let start = decodeURIComponent(location.hash.slice(1));
+  if (!zones.some(z => z.zone === start)) { try { start = localStorage.getItem("zone") || ""; } catch (e) { start = ""; } }
+  if (!zones.some(z => z.zone === start)) start = "AT";
+  sel.value = start;
+  sel.addEventListener("change", () => show(sel.value));
+  show(start);
+}
+init();
 </script>
 </body>
 </html>
