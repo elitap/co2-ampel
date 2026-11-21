@@ -201,6 +201,6 @@ oder wenn der letzte erfolgreiche Abruf länger als 45 min zurückliegt (kein Ne
 - Der Keystore wurde lokal mit `keytool` erzeugt: PKCS12, RSA 4096, 10000 Tage, Passwort mit 40 Zeichen aus
   `secrets`. Dafür lag ein portables Temurin-JDK im Temp-Ordner, nichts wurde installiert.
 - Die Signierdaten liegen nur als GitHub Secrets vor (`ANDROID_KEYSTORE_BASE64`, `…_PASSWORD`, `…_KEY_ALIAS`,
-  `…_KEY_PASSWORD`). Eine Kopie liegt außerhalb des Repos, siehe README bzw. Abschlussbericht.
+  `…_KEY_PASSWORD`). Eine Kopie liegt lokal beim Repo-Inhaber außerhalb des Repos, nicht im Repo.
 - `release.yml` dekodiert den Keystore nur im Build-Schritt in `$RUNNER_TEMP`, löscht ihn danach und prüft die
   Signatur mit `apksigner verify`.
