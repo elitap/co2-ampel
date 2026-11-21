@@ -9,7 +9,11 @@ val keystoreFile: String? = System.getenv("ANDROID_KEYSTORE_FILE")?.takeIf { it.
 
 android {
     namespace = "io.github.elitap.co2ampel"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
 
     defaultConfig {
         applicationId = "io.github.elitap.co2ampel"
