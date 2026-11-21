@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 EM_BASE = "https://api.electricitymaps.com/v3"
 DEFAULT_ZONES = ("AT", "DE", "FR", "CH", "PL")
 SAME_MAGNITUDE = 0.25  # |mittlere Abweichung| / Mittel EM
+SAME_ABS = 20.0  # oder höchstens 20 g/kWh absolut (bei kleinen Werten wie FR/NO)
 
 
 class EmClient:
@@ -179,13 +180,13 @@ def report(snap_dir: Path, out: Path, pages_url: str, zones: tuple[str, ...], em
         if c is None:
             lines.append(f"| {z} | – | – | – | – | – | – | keine gemeinsamen Stunden ({em_doc.get('error', 'ok')}) |")
             continue
-        ok = abs(c["rel_diff"]) <= SAME_MAGNITUDE
+        ok = abs(c["rel_diff"]) <= SAME_MAGNITUDE or abs(c["mean_diff"]) <= SAME_ABS
         lines.append(
             f"| {z} | {c['n']:.0f} ({c['n_em_estimated']:.0f} EM geschätzt) | {c['mean_ours']:.0f} | "
             f"{c['mean_em']:.0f} | {c['mean_diff']:+.0f} ({c['rel_diff']:+.0%}) | {c['mae']:.0f} | "
             f"{c['corr']:.2f} | {'✅ gleich' if ok else '⚠️ abweichend'} |")
     lines += ["", f"Electricity-Maps-Aufrufe in diesem Bericht: {em.calls}. „Gleiche Größenordnung“ = mittlere "
-              f"Abweichung höchstens ±{SAME_MAGNITUDE:.0%}."]
+              f"Abweichung höchstens ±{SAME_MAGNITUDE:.0%} oder ±{SAME_ABS:.0f} g/kWh."]
     text = "\n".join(lines) + "\n"
     out.write_text(text, encoding="utf-8")
     return text
