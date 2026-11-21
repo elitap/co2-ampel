@@ -32,6 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     p_val = sub.add_parser("validate", help="Validierungsbericht aus gespeicherten Rohdaten erzeugen")
     p_val.add_argument("--data", type=Path, required=True, help="Ordner mit public_power_<land>.json/cbpf_<land>.json")
     p_val.add_argument("--reference", type=Path, help="JSON mit Referenzwerten (RTE, Energinet)")
+    p_val.add_argument("--notes", type=Path, help="Markdown-Datei, die angehängt wird (Einordnung)")
     p_val.add_argument("--out", type=Path, required=True)
 
     args = parser.parse_args(argv)
@@ -64,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "validate":
         from .validation import write_report
 
-        write_report(cfg, args.data, args.out, args.reference)
+        write_report(cfg, args.data, args.out, args.reference, args.notes)
         return 0
     return 1
 

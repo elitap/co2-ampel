@@ -112,7 +112,7 @@ def compare_reference(results: Mapping[datetime, Mapping[str, ZoneResult]], zone
     }
 
 
-def write_report(cfg: Config, data_dir: Path, out: Path, reference: Path | None) -> None:
+def write_report(cfg: Config, data_dir: Path, out: Path, reference: Path | None, notes: Path | None = None) -> None:
     data, t0, t1 = load_raw_dir(cfg, data_dir)
     step = timedelta(minutes=cfg.step_minutes)
     steps = [t0 + i * step for i in range(int((t1 - t0) / step) + 1)]
@@ -169,5 +169,7 @@ def write_report(cfg: Config, data_dir: Path, out: Path, reference: Path | None)
             f"{cmp_['mae']:.0f} | {cmp_['corr']:.2f} |",
             "",
         ]
+    if notes is not None and notes.is_file():
+        lines += ["", notes.read_text(encoding="utf-8").rstrip()]
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
     log.info("Bericht geschrieben: %s", out)
