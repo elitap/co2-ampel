@@ -35,6 +35,16 @@ def main(argv: list[str] | None = None) -> int:
     p_val.add_argument("--notes", type=Path, help="Markdown-Datei, die angehängt wird (Einordnung)")
     p_val.add_argument("--out", type=Path, required=True)
 
+    p_es = sub.add_parser("em-snapshot", help="Vergleich Electricity Maps: Snapshot")
+    p_es.add_argument("--out", type=Path, required=True)
+    p_es.add_argument("--pages-url", default="https://elitap.github.io/co2-ampel")
+    p_es.add_argument("--with-em", action="store_true", help="zusätzlich Electricity Maps latest abfragen")
+
+    p_er = sub.add_parser("em-report", help="Vergleich Electricity Maps: Bericht")
+    p_er.add_argument("--snapshots", type=Path, required=True)
+    p_er.add_argument("--out", type=Path, required=True)
+    p_er.add_argument("--pages-url", default="https://elitap.github.io/co2-ampel")
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
@@ -60,6 +70,20 @@ def main(argv: list[str] | None = None) -> int:
         at = next((e for e in res.latest["zones"] if e["zone"] == "AT"), None)
         if at:
             log.info("AT: %s gCO2eq/kWh (%s, %s)", at["consumption"], at["quality"], at["timestamp"])
+        return 0
+
+    if args.cmd in ("em-snapshot", "em-report"):
+        from .emcompare import DEFAULT_ZONES, EmClient, report, snapshot
+
+        em_token = os.environ.get("ELECTRICITYMAPS_TOKEN", "").strip()
+        if args.cmd == "em-snapshot":
+            em = EmClient(em_token) if (args.with_em and em_token) else None
+            snapshot(args.out, args.pages_url, DEFAULT_ZONES, em)
+            return 0
+        if not em_token:
+            log.error("ELECTRICITYMAPS_TOKEN fehlt")
+            return 1
+        print(report(args.snapshots, args.out, args.pages_url, DEFAULT_ZONES, EmClient(em_token)))
         return 0
 
     if args.cmd == "validate":

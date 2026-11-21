@@ -5,7 +5,8 @@ name: compute
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    # versetzte Minuten: GitHub verzögert/verwirft Läufe zu vollen Viertelstunden unter Last häufig
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions: {}
