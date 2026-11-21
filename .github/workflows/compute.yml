@@ -71,3 +71,29 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Ersatz-Taktgeber: GitHub hat die geplanten Läufe (cron) für dieses Repo anfangs nicht gestartet.
+  # Solange in den letzten 40 min kein "schedule"-Lauf stattfand, plant dieser Job den nächsten Lauf
+  # selbst ein (workflow_dispatch über GITHUB_TOKEN ist dafür erlaubt). Funktioniert cron, endet die Kette.
+  next:
+    needs: [compute, deploy]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      actions: write
+    steps:
+      - name: Nächsten Lauf einplanen (nur falls cron ausbleibt)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WF: compute.yml
+        run: |
+          set -euo pipefail
+          : # kein Zeitfenster
+          since=$(date -u -d '40 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
+          sched=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$WF" --event schedule --limit 1 --json createdAt --jq '.[0].createdAt // ""')
+          if [ -n "$sched" ] && [[ "$sched" > "$since" ]]; then echo "cron aktiv ($sched) – keine Kette"; exit 0; fi
+          started=$(gh run view "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --json createdAt --jq .createdAt)
+          wait=$(( $(date -u -d "$started" +%s) + 900 - $(date -u +%s) ))
+          if [ "$wait" -gt 0 ]; then echo "warte $wait s"; sleep "$wait"; fi
+          gh workflow run "$WF" --repo "$GITHUB_REPOSITORY"

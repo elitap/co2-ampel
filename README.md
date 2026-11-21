@@ -8,6 +8,8 @@ wird**. Angegeben ist der Wert in gCO₂eq/kWh über den Lebenszyklus, als Ampel
 - **Android-App** (Kotlin, `android/`): zeigt den Wert als große Ampel mit Verlauf und bietet ein
   Homescreen-Widget in zwei Größen.
 
+**Webseite mit Länderauswahl und Verlauf:** <https://elitap.github.io/co2-ampel/>
+
 **Daten:** <https://elitap.github.io/co2-ampel/latest.json> · Zonen: [`zones.json`](https://elitap.github.io/co2-ampel/zones.json) ·
 Verlauf: `history/<ZONE>.json` (z. B. [`history/AT.json`](https://elitap.github.io/co2-ampel/history/AT.json)) ·
 Schema: [`docs/schema.json`](docs/schema.json)
