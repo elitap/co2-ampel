@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Nachgebaut nach dem Beispiel "Generation Forecasts for Wind and Solar" (A69/A01) aus dem
+     ENTSO-E Transparency Platform RESTful API Implementation Guide. Werte frei gewählt. -->
+<GL_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0">
+	<mRID>9f8e7d6c5b4a49382716051a2b3c4d5e</mRID>
+	<revisionNumber>1</revisionNumber>
+	<type>A69</type>
+	<process.processType>A01</process.processType>
+	<sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
+	<sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
+	<receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
+	<receiver_MarketParticipant.marketRole.type>A33</receiver_MarketParticipant.marketRole.type>
+	<createdDateTime>2026-11-20T18:00:00Z</createdDateTime>
+	<time_Period.timeInterval>
+		<start>2026-11-21T17:00Z</start>
+		<end>2026-11-21T18:00Z</end>
+	</time_Period.timeInterval>
+	<TimeSeries>
+		<mRID>1</mRID>
+		<businessType>A93</businessType>
+		<objectAggregation>A08</objectAggregation>
+		<inBiddingZone_Domain.mRID codingScheme="A01">10YAT-APG------L</inBiddingZone_Domain.mRID>
+		<quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+		<curveType>A01</curveType>
+		<MktPSRType>
+			<psrType>B19</psrType>
+		</MktPSRType>
+		<Period>
+			<timeInterval>
+				<start>2026-11-21T17:00Z</start>
+				<end>2026-11-21T18:00Z</end>
+			</timeInterval>
+			<resolution>PT15M</resolution>
+			<Point><position>1</position><quantity>800</quantity></Point>
+			<Point><position>2</position><quantity>820</quantity></Point>
+			<Point><position>3</position><quantity>840</quantity></Point>
+			<Point><position>4</position><quantity>860</quantity></Point>
+		</Period>
+	</TimeSeries>
+	<TimeSeries>
+		<mRID>2</mRID>
+		<businessType>A93</businessType>
+		<objectAggregation>A08</objectAggregation>
+		<inBiddingZone_Domain.mRID codingScheme="A01">10YAT-APG------L</inBiddingZone_Domain.mRID>
+		<quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+		<curveType>A01</curveType>
+		<MktPSRType>
+			<psrType>B16</psrType>
+		</MktPSRType>
+		<Period>
+			<timeInterval>
+				<start>2026-11-21T17:00Z</start>
+				<end>2026-11-21T18:00Z</end>
+			</timeInterval>
+			<resolution>PT15M</resolution>
+			<Point><position>1</position><quantity>0</quantity></Point>
+			<Point><position>2</position><quantity>0</quantity></Point>
+			<Point><position>3</position><quantity>0</quantity></Point>
+			<Point><position>4</position><quantity>0</quantity></Point>
+		</Period>
+	</TimeSeries>
+</GL_MarketDocument>

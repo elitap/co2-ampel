@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Nachgebaut nach dem Acknowledgement-Beispiel ("No matching data found") aus dem ENTSO-E
+     Transparency Platform RESTful API Implementation Guide. -->
+<Acknowledgement_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-1:acknowledgementdocument:7:0">
+	<mRID>5e4d3c2b1a0f49e8d7c6b5a4f3e2d1c0</mRID>
+	<createdDateTime>2026-11-21T20:00:00Z</createdDateTime>
+	<sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
+	<sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
+	<receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A39I</receiver_MarketParticipant.mRID>
+	<receiver_MarketParticipant.marketRole.type>A39</receiver_MarketParticipant.marketRole.type>
+	<received_MarketDocument.createdDateTime>2026-11-21T20:00:00Z</received_MarketDocument.createdDateTime>
+	<Reason>
+		<code>999</code>
+		<text>No matching data found for Data item ACTUAL_GENERATION_PER_PRODUCTION_TYPE [16.1.B&amp;C] (10YAT-APG------L) and interval 2026-11-21T16:00:00.000Z/2026-11-21T17:00:00.000Z.</text>
+	</Reason>
+</Acknowledgement_MarketDocument>

@@ -1,0 +1,42 @@
+# GitHub deaktiviert geplante Workflows in öffentlichen Repos nach 60 Tagen ohne Repo-Aktivität.
+# Dieser Workflow läuft monatlich und
+#   1. legt einen leeren Commit an, falls seit 30 Tagen nichts committet wurde (= Repo-Aktivität),
+#   2. aktiviert compute.yml vorsorglich wieder (falls es doch deaktiviert wurde).
+# Commits mit GITHUB_TOKEN lösen keine weiteren Workflows aus.
+name: keepalive
+
+on:
+  schedule:
+    - cron: "17 4 1 * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write # leerer Commit
+      actions: write # Workflow wieder aktivieren
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Leerer Commit bei Inaktivität
+        run: |
+          set -euo pipefail
+          last=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          age_days=$(( (now - last) / 86400 ))
+          echo "Letzter Commit vor $age_days Tagen"
+          if [ "$age_days" -ge 30 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive (geplante Workflows aktiv halten)"
+            git push
+          fi
+      - name: compute.yml aktiv halten
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable compute.yml --repo "$GITHUB_REPOSITORY"

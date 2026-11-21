@@ -1,0 +1,63 @@
+# Zonen des Modells.
+#   code:           Zonen-Code in der Ausgabe
+#   energy_charts:  Länder-Code der Energy-Charts API
+#   alias:          Nachbar-ID, mit der Energy-Charts (cbpf) diese Zone bezeichnet
+#   entsoe:         EIC-Code für ENTSO-E (Erzeugung A75/A69/A71 und Flüsse A11)
+#
+# Energy-Charts liefert Erzeugung und Grenzflüsse nur je Land. Länder mit mehreren Gebotszonen
+# (NO, SE, DK, IT) werden daher als eine Zone geführt; Deutschland und Luxemburg (gemeinsame
+# Gebotszone DE-LU) werden getrennt gerechnet, weil beide Quellen sie getrennt ausweisen.
+# Großbritannien und die Ukraine sind extern (feste Intensität): Energy-Charts liefert für UK nur
+# unvollständige Erzeugungsdaten (u. a. ohne Kernkraft) und für UA keine; ENTSO-E hat seit 2021 keine
+# GB-Daten. Für Dänemark liefert Energy-Charts keine Erzeugung (HTTP 404): DK ist nur mit
+# ENTSO-E-Token berechenbar, sonst "unknown" mit Ersatzintensität aus settings.yaml.
+zones:
+  - {code: AT, name_de: Österreich,              name_en: Austria,                energy_charts: at, alias: austria,            entsoe: 10YAT-APG------L}
+  - {code: BA, name_de: Bosnien und Herzegowina, name_en: Bosnia and Herzegovina, energy_charts: ba, alias: bosnia_herzegovina, entsoe: 10YBA-JPCC-----D}
+  - {code: BE, name_de: Belgien,                 name_en: Belgium,                energy_charts: be, alias: belgium,            entsoe: 10YBE----------2}
+  - {code: BG, name_de: Bulgarien,               name_en: Bulgaria,               energy_charts: bg, alias: bulgaria,           entsoe: 10YCA-BULGARIA-R}
+  - {code: CH, name_de: Schweiz,                 name_en: Switzerland,            energy_charts: ch, alias: switzerland,        entsoe: 10YCH-SWISSGRIDZ}
+  - {code: CY, name_de: Zypern,                  name_en: Cyprus,                 energy_charts: cy, alias: cyprus,             entsoe: 10YCY-1001A0003J}
+  - {code: CZ, name_de: Tschechien,              name_en: Czechia,                energy_charts: cz, alias: czech_republic,     entsoe: 10YCZ-CEPS-----N}
+  - {code: DE, name_de: Deutschland,             name_en: Germany,                energy_charts: de, alias: germany,            entsoe: 10Y1001A1001A83F}
+  - {code: DK, name_de: Dänemark,                name_en: Denmark,                energy_charts: dk, alias: denmark,            entsoe: 10Y1001A1001A65H}
+  - {code: EE, name_de: Estland,                 name_en: Estonia,                energy_charts: ee, alias: estonia,            entsoe: 10Y1001A1001A39I}
+  - {code: ES, name_de: Spanien,                 name_en: Spain,                  energy_charts: es, alias: spain,              entsoe: 10YES-REE------0}
+  - {code: FI, name_de: Finnland,                name_en: Finland,                energy_charts: fi, alias: finland,            entsoe: 10YFI-1--------U}
+  - {code: FR, name_de: Frankreich,              name_en: France,                 energy_charts: fr, alias: france,             entsoe: 10YFR-RTE------C}
+  - {code: GE, name_de: Georgien,                name_en: Georgia,                energy_charts: ge, alias: georgia,            entsoe: 10Y1001A1001B012}
+  - {code: GR, name_de: Griechenland,            name_en: Greece,                 energy_charts: gr, alias: greece,             entsoe: 10YGR-HTSO-----Y}
+  - {code: HR, name_de: Kroatien,                name_en: Croatia,                energy_charts: hr, alias: croatia,            entsoe: 10YHR-HEP------M}
+  - {code: HU, name_de: Ungarn,                  name_en: Hungary,                energy_charts: hu, alias: hungary,            entsoe: 10YHU-MAVIR----U}
+  - {code: IE, name_de: Irland,                  name_en: Ireland,                energy_charts: ie, alias: ireland,            entsoe: 10YIE-1001A00010}
+  - {code: IT, name_de: Italien,                 name_en: Italy,                  energy_charts: it, alias: italy,              entsoe: 10YIT-GRTN-----B}
+  - {code: LT, name_de: Litauen,                 name_en: Lithuania,              energy_charts: lt, alias: lithuania,          entsoe: 10YLT-1001A0008Q}
+  - {code: LU, name_de: Luxemburg,               name_en: Luxembourg,             energy_charts: lu, alias: luxembourg,         entsoe: 10YLU-CEGEDEL-NQ}
+  - {code: LV, name_de: Lettland,                name_en: Latvia,                 energy_charts: lv, alias: latvia,             entsoe: 10YLV-1001A00074}
+  - {code: MD, name_de: Moldau,                  name_en: Moldova,                energy_charts: md, alias: moldova,            entsoe: 10Y1001A1001A990}
+  - {code: ME, name_de: Montenegro,              name_en: Montenegro,             energy_charts: me, alias: montenegro,         entsoe: 10YCS-CG-TSO---S}
+  - {code: MK, name_de: Nordmazedonien,          name_en: North Macedonia,        energy_charts: mk, alias: north_macedonia,    entsoe: 10YMK-MEPSO----8}
+  - {code: NL, name_de: Niederlande,             name_en: Netherlands,            energy_charts: nl, alias: netherlands,        entsoe: 10YNL----------L}
+  - {code: "NO", name_de: Norwegen,              name_en: Norway,                 energy_charts: "no", alias: norway,           entsoe: 10YNO-0--------C}
+  - {code: PL, name_de: Polen,                   name_en: Poland,                 energy_charts: pl, alias: poland,             entsoe: 10YPL-AREA-----S}
+  - {code: PT, name_de: Portugal,                name_en: Portugal,               energy_charts: pt, alias: portugal,           entsoe: 10YPT-REN------W}
+  - {code: RO, name_de: Rumänien,                name_en: Romania,                energy_charts: ro, alias: romania,            entsoe: 10YRO-TEL------P}
+  - {code: RS, name_de: Serbien,                 name_en: Serbia,                 energy_charts: rs, alias: serbia,             entsoe: 10YCS-SERBIATSOV}
+  - {code: SE, name_de: Schweden,                name_en: Sweden,                 energy_charts: se, alias: sweden,             entsoe: 10YSE-1--------K}
+  - {code: SI, name_de: Slowenien,               name_en: Slovenia,               energy_charts: si, alias: slovenia,           entsoe: 10YSI-ELES-----O}
+  - {code: SK, name_de: Slowakei,                name_en: Slovakia,               energy_charts: sk, alias: slovakia,           entsoe: 10YSK-SEPS-----K}
+  - {code: XK, name_de: Kosovo,                  name_en: Kosovo,                 energy_charts: xk, alias: kosovo,             entsoe: 10Y1001C--00100H}
+
+# Regionen außerhalb des Datenbereichs: Energy-Charts-Nachbar-ID -> Code.
+# Ihre Intensität ist fest (settings.yaml, external_intensity).
+external:
+  albania: AL
+  turkey: TR
+  russia: RU
+  malta: MT
+  armenia: AM
+  azerbaijan: AZ
+  belarus: BY
+  united_kingdom: GB
+  northern_ireland: GB
+  ukraine: UA

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "co2ampel"
+version = "1.0.0"
+description = "Verbrauchsbasierte CO2-Intensität europäischer Stromzonen per Flow-Tracing"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+  "numpy>=1.26",
+  "requests>=2.32",
+  "PyYAML>=6.0",
+  "jsonschema>=4.23",
+  "defusedxml>=0.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "types-requests",
+  "types-PyYAML",
+  "types-jsonschema",
+  "types-defusedxml",
+]
+
+[project.scripts]
+co2ampel = "co2ampel.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["co2ampel*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "PL"]
+ignore = ["PLR0913", "PLR0917", "PLC0415", "PLR2004", "PLR0912", "PLR0915", "PLR0911", "S101", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "PLR"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+files = ["co2ampel", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["entsoe_live: braucht ENTSOE_API_TOKEN und Netz", "network: braucht Netzzugang"]

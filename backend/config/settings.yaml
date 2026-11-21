@@ -1,0 +1,54 @@
+# Laufzeit-Einstellungen des Backends.
+
+# Zeitschritt in Minuten
+step_minutes: 15
+# Wie weit zurück jeder Lauf Daten abfragt und neu rechnet (Stunden).
+fetch_window_hours: 8
+# Länge der Historie pro Zone (Stunden)
+history_hours: 48
+# Letzter bekannter Wert darf höchstens so alt sein (Stunden), sonst "unbekannt".
+max_stale_hours: 3
+# latest.json: Werte, deren Zeitstempel älter ist, werden als "stale" markiert (Anzeige "veraltet").
+# Energy-Charts veröffentlicht je nach Land mit 1–4 h Verzug.
+stale_after_hours: 4
+# Eine Zone gilt zu einem Zeitpunkt als "gemessen", wenn mindestens dieser Anteil ihrer
+# (in den letzten 24 h gemeldeten) Erzeugungstechnologien einen Wert hat.
+min_tech_coverage: 0.5
+# Anteil an der Erzeugung, ab dem lückengefüllte Technologien / Importe das Qualitätsflag prägen.
+significant_share: 0.05
+
+# Plausibilität: Lauf schlägt fehl, wenn ...
+plausibility:
+  min_value: 0
+  max_value: 1500
+  max_missing_share: 0.30
+
+# Energy-Charts: Zeitbudget pro Endpunkt und Lauf (Sekunden). Die API erlaubt ca. 2 Anfragen/min
+# pro Endpunkt (Burst 4). Länder, die in einem Lauf nicht abgefragt werden, kommen aus dem Cache
+# des letzten Laufs (Rotation: am längsten nicht abgefragte Länder zuerst).
+energy_charts:
+  base_url: https://api.energy-charts.info
+  budget_seconds: 540
+  # Erster Lauf ohne Cache: größeres Budget, damit alle Länder einmal abgefragt werden.
+  bootstrap_budget_seconds: 1500
+
+entsoe:
+  base_url: https://web-api.tp.entsoe.eu/api
+  budget_seconds: 240
+
+# Intensität von Regionen außerhalb des Datenbereichs (gCO2eq/kWh), Annahmen auf Basis
+# veröffentlichter Jahresmittel (Größenordnung), siehe docs/DECISIONS.md.
+external_intensity:
+  default: 450
+  zones:
+    AL: 30     # Albanien: fast ausschließlich Wasserkraft
+    TR: 450    # Türkei: Kohle/Gas-Mix mit Wasserkraft
+    RU: 400    # Russland: Gas/Kohle/Kern/Wasser
+    MT: 450    # Malta: Gas + Importe
+    AM: 200    # Armenien: Kern/Gas/Wasser
+    AZ: 470    # Aserbaidschan: überwiegend Gas
+    BY: 450    # Belarus: Gas + Kern
+    UA: 300    # Ukraine: Kern/Kohle/Wasser, keine Erzeugungsdaten bei Energy-Charts
+    GB: 150    # Großbritannien: NESO-Jahresmittel ~125–150, Energy-Charts-Daten unvollständig
+    # Ersatzwerte für Zonen, die (noch) nie berechnet wurden und gerade unbekannt sind:
+    DK: 150    # Dänemark: Energinet-Jahresmittel Größenordnung 100–150

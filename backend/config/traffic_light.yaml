@@ -1,0 +1,7 @@
+# Ampelgrenzen für die Verbrauchsintensität in gCO2eq/kWh.
+#   grün:  Wert <  green_below
+#   gelb:  green_below <= Wert <= red_above
+#   rot:   Wert >  red_above
+# Die Grenzwerte werden in jede latest.json geschrieben; die App liest sie von dort.
+green_below: 150
+red_above: 300

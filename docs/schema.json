@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://elitap.github.io/co2-ampel/schema.json",
+  "title": "CO2-Ampel – veröffentlichte Dateien",
+  "description": "Schema für latest.json, history/<zone>.json, zones.json und state/cache.json. Das Feld 'kind' bestimmt den Dateityp.",
+  "oneOf": [
+    {"$ref": "#/$defs/latest"},
+    {"$ref": "#/$defs/history"},
+    {"$ref": "#/$defs/zones"},
+    {"$ref": "#/$defs/cache"}
+  ],
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "description": "Zeitpunkt in UTC (ISO 8601). Bei Messwerten: Beginn des 15-Minuten-Intervalls."
+    },
+    "zoneCode": {"type": "string", "pattern": "^[A-Z]{2}(-[A-Z0-9]{1,4})?$"},
+    "intensity": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1500,
+      "description": "gCO2eq/kWh (Lebenszyklus)"
+    },
+    "quality": {
+      "type": "string",
+      "enum": ["measured", "forecast", "stale", "estimated", "unknown"],
+      "description": "measured = Ist-Werte; forecast = Prognose; stale = letzter bekannter Wert (max. 3 h) bzw. Wert älter als 3 h; estimated = wesentliche Importe aus Zonen ohne aktuelle Daten; unknown = keine Daten"
+    },
+    "level": {"type": "string", "enum": ["green", "yellow", "red", "unknown"]},
+    "thresholds": {
+      "type": "object",
+      "required": ["green_below", "red_above", "unit"],
+      "properties": {
+        "green_below": {"type": "number", "exclusiveMinimum": 0},
+        "red_above": {"type": "number", "exclusiveMinimum": 0},
+        "unit": {"const": "gCO2eq/kWh"}
+      }
+    },
+    "attribution": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["source", "license", "url"],
+        "properties": {
+          "source": {"type": "string", "minLength": 1},
+          "license": {"type": "string", "minLength": 1},
+          "url": {"type": "string", "format": "uri"}
+        }
+      }
+    },
+    "common": {
+      "type": "object",
+      "required": ["schema_version", "kind", "generated_at", "attribution"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "generated_at": {"$ref": "#/$defs/timestamp"},
+        "attribution": {"$ref": "#/$defs/attribution"}
+      }
+    },
+    "latest": {
+      "allOf": [{"$ref": "#/$defs/common"}],
+      "type": "object",
+      "required": ["kind", "unit", "thresholds", "zones"],
+      "properties": {
+        "kind": {"const": "latest"},
+        "unit": {"const": "gCO2eq/kWh"},
+        "thresholds": {"$ref": "#/$defs/thresholds"},
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["zone", "name", "name_en", "timestamp", "consumption", "production", "quality", "level"],
+            "properties": {
+              "zone": {"$ref": "#/$defs/zoneCode"},
+              "name": {"type": "string"},
+              "name_en": {"type": "string"},
+              "timestamp": {"oneOf": [{"$ref": "#/$defs/timestamp"}, {"type": "null"}]},
+              "consumption": {"$ref": "#/$defs/intensity"},
+              "production": {"$ref": "#/$defs/intensity"},
+              "quality": {"$ref": "#/$defs/quality"},
+              "level": {"$ref": "#/$defs/level"}
+            }
+          }
+        }
+      }
+    },
+    "history": {
+      "allOf": [{"$ref": "#/$defs/common"}],
+      "type": "object",
+      "required": ["kind", "zone", "name", "name_en", "unit", "thresholds", "points"],
+      "properties": {
+        "kind": {"const": "history"},
+        "zone": {"$ref": "#/$defs/zoneCode"},
+        "name": {"type": "string"},
+        "name_en": {"type": "string"},
+        "unit": {"const": "gCO2eq/kWh"},
+        "thresholds": {"$ref": "#/$defs/thresholds"},
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["t", "consumption", "production", "quality"],
+            "properties": {
+              "t": {"$ref": "#/$defs/timestamp"},
+              "consumption": {"$ref": "#/$defs/intensity"},
+              "production": {"$ref": "#/$defs/intensity"},
+              "quality": {"$ref": "#/$defs/quality"}
+            }
+          }
+        }
+      }
+    },
+    "zones": {
+      "allOf": [{"$ref": "#/$defs/common"}],
+      "type": "object",
+      "required": ["kind", "zones"],
+      "properties": {
+        "kind": {"const": "zones"},
+        "zones": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["zone", "name", "name_en"],
+            "properties": {
+              "zone": {"$ref": "#/$defs/zoneCode"},
+              "name": {"type": "string"},
+              "name_en": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "cache": {
+      "allOf": [{"$ref": "#/$defs/common"}],
+      "type": "object",
+      "required": ["kind", "energy_charts"],
+      "description": "Interner Rohdaten-Cache (Energy-Charts-Rotation), nicht für Endnutzer.",
+      "properties": {
+        "kind": {"const": "cache"},
+        "energy_charts": {"type": "object"}
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+# Lebenszyklus-Emissionsfaktoren in gCO2eq/kWh.
+#
+# Primärquelle: IPCC AR5 WG III (2014), Annex III, Tabelle A.III.2
+#   "Emissions of selected electricity supply technologies (gCO2eq/kWh)", Lebenszyklus-Medianwerte.
+#   Schlomer S. et al. (2014): Annex III: Technology-specific cost and performance parameters.
+#   In: Climate Change 2014: Mitigation of Climate Change. Cambridge University Press.
+#   https://www.ipcc.ch/site/assets/uploads/2018/02/ipcc_wg3_ar5_annex-iii.pdf
+# Ergänzend: IPCC SRREN (2011), Annex II, Tabelle A.II.4 (Öl), und eigene, dokumentierte Annahmen
+#   für Kategorien ohne IPCC-Wert (siehe "source" je Eintrag und docs/DECISIONS.md).
+#
+# Hinweis zur Lizenz: Die Faktoren aus electricitymaps-contrib wurden NICHT übernommen, weil das
+# Repository unter AGPL-3.0 steht. Die IPCC-Medianwerte sind veröffentlichte Fakten und werden hier
+# mit Quellenangabe verwendet.
+#
+# "storage: true" = Speicherentladung. Sie erhält im Flow-Tracing die Intensität der eigenen Zone
+# (der Faktor wird nicht verwendet).
+
+technologies:
+  nuclear:          {factor: 12,   source: "IPCC AR5 Annex III, Nuclear, Median"}
+  hard_coal:        {factor: 820,  source: "IPCC AR5 Annex III, Coal – PC, Median"}
+  lignite:          {factor: 1100, source: "Annahme: AR5 Coal – PC 820 + höherer Brennstoffbedarf; UBA nennt direkt ~1100 g/kWh für Braunkohle"}
+  coal_derived_gas: {factor: 820,  source: "Annahme: wie Steinkohle (Kuppelgase aus Kokerei/Hochofen)"}
+  gas:              {factor: 490,  source: "IPCC AR5 Annex III, Gas – Combined Cycle, Median"}
+  oil:              {factor: 840,  source: "IPCC SRREN 2011 Annex II, Oil, Median"}
+  oil_shale:        {factor: 1100, source: "Annahme: wie Braunkohle (Ölschiefer, Estland)"}
+  peat:             {factor: 1100, source: "Annahme: wie Braunkohle (Torf, Finnland/Irland)"}
+  biomass:          {factor: 230,  source: "IPCC AR5 Annex III, Biomass – dedicated, Median"}
+  waste:            {factor: 580,  source: "Annahme: Abfallverbrennung, fossiler Anteil; keine IPCC-Angabe"}
+  geothermal:       {factor: 38,   source: "IPCC AR5 Annex III, Geothermal, Median"}
+  hydro:            {factor: 24,   source: "IPCC AR5 Annex III, Hydropower, Median"}
+  marine:           {factor: 17,   source: "IPCC AR5 Annex III, Ocean (Tidal), Median"}
+  solar:            {factor: 48,   source: "IPCC AR5 Annex III, Solar PV – utility, Median"}
+  wind_onshore:     {factor: 11,   source: "IPCC AR5 Annex III, Wind onshore, Median"}
+  wind_offshore:    {factor: 12,   source: "IPCC AR5 Annex III, Wind offshore, Median"}
+  other_renewable:  {factor: 38,   source: "Annahme: wie Geothermie (Mischkategorie erneuerbar)"}
+  other:            {factor: 700,  source: "Annahme: überwiegend fossile Restkategorie"}
+  storage:          {factor: 0,    storage: true, source: "Speicherentladung: Intensität der eigenen Zone"}
+
+# Zuordnung der Technologienamen der Datenquellen auf die kanonischen Technologien.
+# Wert null = keine Erzeugung (wird ignoriert); "charge" = Speicherladen (Verbrauch).
+mapping:
+  energy_charts:
+    nuclear: nuclear
+    fossil_hard_coal: hard_coal
+    fossil_brown_coal_lignite: lignite
+    fossil_coal_derived_gas: coal_derived_gas
+    fossil_gas: gas
+    fossil_oil: oil
+    fossil_oil_shale: oil_shale
+    fossil_peat: peat
+    biomass: biomass
+    waste: waste
+    geothermal: geothermal
+    hydro_run_of_river: hydro
+    hydro_water_reservoir: hydro
+    hydro_pumped_storage: storage
+    hydro_pumped_storage_consumption: charge
+    battery: storage
+    battery_consumption: charge
+    marine: marine
+    solar: solar
+    wind_onshore: wind_onshore
+    wind_offshore: wind_offshore
+    other_renewables: other_renewable
+    others: other
+    # keine Erzeugung:
+    load: null
+    residual_load: null
+    cross_border_electricity_trading: null
+    renewable_share_of_load: null
+    renewable_share_of_generation: null
+  # ENTSO-E PSR-Typen (Transparency Platform, Code-Liste "PsrType")
+  entsoe:
+    B01: biomass          # Biomass
+    B02: lignite          # Fossil Brown coal/Lignite
+    B03: coal_derived_gas # Fossil Coal-derived gas
+    B04: gas              # Fossil Gas
+    B05: hard_coal        # Fossil Hard coal
+    B06: oil              # Fossil Oil
+    B07: oil_shale        # Fossil Oil shale
+    B08: peat             # Fossil Peat
+    B09: geothermal       # Geothermal
+    B10: storage          # Hydro Pumped Storage (Erzeugung; Verbrauch über outBiddingZone -> charge)
+    B11: hydro            # Hydro Run-of-river and poundage
+    B12: hydro            # Hydro Water Reservoir
+    B13: marine           # Marine
+    B14: nuclear          # Nuclear
+    B15: other_renewable  # Other renewable
+    B16: solar            # Solar
+    B17: waste            # Waste
+    B18: wind_offshore    # Wind Offshore
+    B19: wind_onshore     # Wind Onshore
+    B20: other            # Other
+    B25: storage          # Energy storage

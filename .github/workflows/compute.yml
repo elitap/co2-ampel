@@ -1,0 +1,72 @@
+# Rechnet alle 15 Minuten die CO2-Intensität und veröffentlicht sie auf GitHub Pages.
+# Es werden keine Daten committet: Historie und Rohdaten-Cache werden aus der zuletzt
+# veröffentlichten Pages-Version gelesen und fortgeschrieben.
+name: compute
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+# Nie zwei Läufe gleichzeitig (sonst könnte ein älterer Lauf einen neueren überschreiben).
+concurrency:
+  group: compute
+  cancel-in-progress: false
+
+env:
+  PAGES_URL: https://elitap.github.io/co2-ampel
+
+jobs:
+  compute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Abhängigkeiten (Hash-gepinnt)
+        working-directory: backend
+        run: python -m pip install --require-hashes --no-deps -r requirements.txt
+
+      - name: Rechnen
+        working-directory: backend
+        env:
+          # leer = kein Token -> nur Energy-Charts
+          ENTSOE_API_TOKEN: ${{ secrets.ENTSOE_API_TOKEN }}
+        run: python -m co2ampel run --out "$GITHUB_WORKSPACE/public" --previous-url "$PAGES_URL"
+
+      - name: Statische Dateien
+        run: |
+          cp docs/schema.json public/schema.json
+          cp site/index.html public/index.html
+          touch public/.nojekyll
+          python -c "import json;d=json.load(open('public/latest.json'));at=[z for z in d['zones'] if z['zone']=='AT'][0];print('AT', at['consumption'], at['quality'], at['timestamp'])"
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: public
+
+  deploy:
+    needs: compute
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

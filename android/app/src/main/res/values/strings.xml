@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CO2 Traffic Light</string>
+    <string name="unit">gCO₂eq/kWh</string>
+
+    <string name="level_green">Green – low</string>
+    <string name="level_yellow">Yellow – medium</string>
+    <string name="level_red">Red – high</string>
+    <string name="level_unknown">No data</string>
+    <string name="level_green_short">Green</string>
+    <string name="level_yellow_short">Yellow</string>
+    <string name="level_red_short">Red</string>
+    <string name="level_unknown_short">–</string>
+
+    <string name="consumption">Consumption</string>
+    <string name="production">Production</string>
+    <string name="consumption_explained">Consumption intensity: mix including imports (flow tracing)</string>
+    <string name="production_explained">Production intensity: domestic generation only</string>
+    <string name="value_missing">–</string>
+
+    <string name="age_just_now">just now</string>
+    <plurals name="age_minutes">
+        <item quantity="one">%d minute ago</item>
+        <item quantity="other">%d minutes ago</item>
+    </plurals>
+    <plurals name="age_hours">
+        <item quantity="one">%d hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    <plurals name="age_days">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <string name="data_time">Data from %1$s (%2$s)</string>
+
+    <string name="hint_forecast">Partly based on forecasts.</string>
+    <string name="hint_stale">Data is outdated – last known value is shown.</string>
+    <string name="hint_estimated">Estimated: significant imports from zones without current data.</string>
+    <string name="hint_unknown">No current data for this zone.</string>
+    <string name="hint_offline">Offline – showing the last downloaded value.</string>
+    <string name="hint_error">Could not load data. Tap refresh to try again.</string>
+    <string name="stale_short">outdated</string>
+
+    <string name="history_title">Last 48 hours</string>
+    <string name="history_empty">No history available.</string>
+    <string name="history_axis">%1$s – %2$s</string>
+    <string name="chart_description">Chart of the consumption intensity over the last 48 hours, from %1$d to %2$d gCO₂eq/kWh.</string>
+
+    <string name="action_zone">Change zone</string>
+    <string name="action_info">Methodology and sources</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_back">Back</string>
+    <string name="search_zone">Search zone</string>
+    <string name="select_zone">Select zone</string>
+    <string name="zones_unavailable">Zone list could not be loaded.</string>
+
+    <string name="info_title">Methodology and sources</string>
+    <string name="info_method_title">Methodology</string>
+    <string name="info_method">The app shows the carbon intensity of the electricity consumed in a zone, in grams of CO₂ equivalent per kilowatt-hour over the full life cycle (IPCC AR5 median values). Every 15 minutes the backend combines the generation per technology of all European countries with the physical cross-border flows and solves the whole grid at once (flow tracing, proportional sharing): imported electricity carries the intensity of the exporting zone. Pumped storage discharge counts with the intensity of its own zone. Data is published with a delay of typically 1–4 hours by the sources.</string>
+    <string name="info_levels_title">Traffic light</string>
+    <string name="info_levels">Green below %1$d, yellow %1$d–%2$d, red above %2$d gCO₂eq/kWh.</string>
+    <string name="info_quality_title">Quality flags</string>
+    <string name="info_quality">measured = actual values; forecast = partly forecasts; stale = last known value (max. 3 h) or older data; estimated = significant imports from zones without current data.</string>
+    <string name="info_sources_title">Sources and licences</string>
+    <string name="info_sources">Energy-Charts (Fraunhofer ISE), energy-charts.info – licence CC BY 4.0. If configured: ENTSO-E Transparency Platform, transparency.entsoe.eu. Emission factors: IPCC AR5 WG III Annex III (2014).</string>
+    <string name="info_privacy_title">Privacy</string>
+    <string name="info_privacy">No tracking, no analytics. The app only downloads public JSON files from elitap.github.io.</string>
+    <string name="info_source_code">Source code: github.com/elitap/co2-ampel</string>
+
+    <string name="widget_small_label">CO2 traffic light (small)</string>
+    <string name="widget_medium_label">CO2 traffic light (medium)</string>
+    <string name="widget_small_description">Traffic light dot and value</string>
+    <string name="widget_medium_description">Traffic light, value, zone and time</string>
+    <string name="widget_config_title">Choose zone for widget</string>
+    <string name="widget_loading">Loading…</string>
+    <string name="widget_time">at %1$s</string>
+</resources>

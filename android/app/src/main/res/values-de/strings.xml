@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CO2-Ampel</string>
+    <string name="unit">gCO₂eq/kWh</string>
+
+    <string name="level_green">Grün – niedrig</string>
+    <string name="level_yellow">Gelb – mittel</string>
+    <string name="level_red">Rot – hoch</string>
+    <string name="level_unknown">Keine Daten</string>
+    <string name="level_green_short">Grün</string>
+    <string name="level_yellow_short">Gelb</string>
+    <string name="level_red_short">Rot</string>
+    <string name="level_unknown_short">–</string>
+
+    <string name="consumption">Verbrauch</string>
+    <string name="production">Produktion</string>
+    <string name="consumption_explained">Verbrauchsintensität: Mix inklusive Importe (Flow-Tracing)</string>
+    <string name="production_explained">Produktionsintensität: nur inländische Erzeugung</string>
+    <string name="value_missing">–</string>
+
+    <string name="age_just_now">gerade eben</string>
+    <plurals name="age_minutes">
+        <item quantity="one">vor %d Minute</item>
+        <item quantity="other">vor %d Minuten</item>
+    </plurals>
+    <plurals name="age_hours">
+        <item quantity="one">vor %d Stunde</item>
+        <item quantity="other">vor %d Stunden</item>
+    </plurals>
+    <plurals name="age_days">
+        <item quantity="one">vor %d Tag</item>
+        <item quantity="other">vor %d Tagen</item>
+    </plurals>
+    <string name="data_time">Daten von %1$s (%2$s)</string>
+
+    <string name="hint_forecast">Teilweise auf Prognosen gestützt.</string>
+    <string name="hint_stale">Daten veraltet – letzter bekannter Wert wird angezeigt.</string>
+    <string name="hint_estimated">Geschätzt: wesentliche Importe aus Zonen ohne aktuelle Daten.</string>
+    <string name="hint_unknown">Für diese Zone liegen keine aktuellen Daten vor.</string>
+    <string name="hint_offline">Offline – zuletzt geladener Wert wird angezeigt.</string>
+    <string name="hint_error">Daten konnten nicht geladen werden. Zum Wiederholen auf Aktualisieren tippen.</string>
+    <string name="stale_short">veraltet</string>
+
+    <string name="history_title">Letzte 48 Stunden</string>
+    <string name="history_empty">Kein Verlauf verfügbar.</string>
+    <string name="history_axis">%1$s – %2$s</string>
+    <string name="chart_description">Diagramm der Verbrauchsintensität der letzten 48 Stunden, von %1$d bis %2$d gCO₂eq/kWh.</string>
+
+    <string name="action_zone">Zone wechseln</string>
+    <string name="action_info">Methodik und Quellen</string>
+    <string name="action_refresh">Aktualisieren</string>
+    <string name="action_back">Zurück</string>
+    <string name="search_zone">Zone suchen</string>
+    <string name="select_zone">Zone wählen</string>
+    <string name="zones_unavailable">Zonenliste konnte nicht geladen werden.</string>
+
+    <string name="info_title">Methodik und Quellen</string>
+    <string name="info_method_title">Methodik</string>
+    <string name="info_method">Die App zeigt die CO₂-Intensität des in einer Zone verbrauchten Stroms in Gramm CO₂-Äquivalent pro Kilowattstunde über den gesamten Lebenszyklus (IPCC-AR5-Medianwerte). Alle 15 Minuten verknüpft das Backend die Erzeugung je Technologie aller europäischen Länder mit den physikalischen Grenzflüssen und löst das ganze Netz in einem Schritt (Flow-Tracing, proportionale Aufteilung): Importierter Strom trägt die Intensität der exportierenden Zone. Pumpspeicher-Entladung zählt mit der Intensität der eigenen Zone. Die Quellen veröffentlichen die Daten typischerweise mit 1–4 Stunden Verzögerung.</string>
+    <string name="info_levels_title">Ampel</string>
+    <string name="info_levels">Grün unter %1$d, gelb %1$d–%2$d, rot über %2$d gCO₂eq/kWh.</string>
+    <string name="info_quality_title">Qualitätsflags</string>
+    <string name="info_quality">measured = Ist-Werte; forecast = teilweise Prognosen; stale = letzter bekannter Wert (max. 3 h) bzw. ältere Daten; estimated = wesentliche Importe aus Zonen ohne aktuelle Daten.</string>
+    <string name="info_sources_title">Quellen und Lizenzen</string>
+    <string name="info_sources">Energy-Charts (Fraunhofer ISE), energy-charts.info – Lizenz CC BY 4.0. Falls konfiguriert: ENTSO-E Transparency Platform, transparency.entsoe.eu. Emissionsfaktoren: IPCC AR5 WG III Annex III (2014).</string>
+    <string name="info_privacy_title">Datenschutz</string>
+    <string name="info_privacy">Kein Tracking, keine Analytics. Die App lädt nur öffentliche JSON-Dateien von elitap.github.io.</string>
+    <string name="info_source_code">Quellcode: github.com/elitap/co2-ampel</string>
+
+    <string name="widget_small_label">CO2-Ampel (klein)</string>
+    <string name="widget_medium_label">CO2-Ampel (mittel)</string>
+    <string name="widget_small_description">Ampelpunkt und Wert</string>
+    <string name="widget_medium_description">Ampel, Wert, Zone und Uhrzeit</string>
+    <string name="widget_config_title">Zone für das Widget wählen</string>
+    <string name="widget_loading">Lädt …</string>
+    <string name="widget_time">um %1$s</string>
+</resources>

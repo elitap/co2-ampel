@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CO2-Ampel – Daten</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  code { background: #8882; padding: .1em .3em; border-radius: 4px; }
+  table { border-collapse: collapse; } td, th { padding: .2rem .6rem; text-align: left; }
+  .dot { display: inline-block; width: .8em; height: .8em; border-radius: 50%; }
+</style>
+</head>
+<body>
+<h1>CO2-Ampel</h1>
+<p>Verbrauchsbasierte CO2-Intensität (gCO2eq/kWh, Lebenszyklus) europäischer Stromzonen, berechnet alle
+15&nbsp;Minuten per Flow-Tracing. Quellcode und Methodik:
+<a href="https://github.com/elitap/co2-ampel">github.com/elitap/co2-ampel</a>.</p>
+<ul>
+  <li><a href="latest.json"><code>latest.json</code></a> – aktueller Wert je Zone</li>
+  <li><a href="zones.json"><code>zones.json</code></a> – Liste der Zonen</li>
+  <li><code>history/&lt;zone&gt;.json</code> – letzte 48&nbsp;h, z.&nbsp;B. <a href="history/AT.json">history/AT.json</a></li>
+  <li><a href="schema.json"><code>schema.json</code></a> – JSON-Schema</li>
+</ul>
+<table id="t"><thead><tr><th>Zone</th><th>Verbrauch</th><th>Produktion</th><th>Qualität</th><th>Zeit (UTC)</th></tr></thead><tbody></tbody></table>
+<p><small>Daten: Energy-Charts (Fraunhofer ISE), CC BY 4.0; ggf. ENTSO-E Transparency Platform.</small></p>
+<script>
+fetch("latest.json").then(r => r.json()).then(d => {
+  const c = {green: "#1e7e34", yellow: "#f2c200", red: "#c62828", unknown: "#888"};
+  const tb = document.querySelector("#t tbody");
+  for (const z of d.zones) {
+    const tr = document.createElement("tr");
+    const cells = [z.zone + " " + z.name, z.consumption ?? "–", z.production ?? "–", z.quality, z.timestamp ?? "–"];
+    cells.forEach((v, i) => {
+      const td = document.createElement("td");
+      if (i === 1) { const s = document.createElement("span"); s.className = "dot"; s.style.background = c[z.level]; td.append(s, " "); }
+      td.append(String(v)); tr.append(td);
+    });
+    tb.append(tr);
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>
