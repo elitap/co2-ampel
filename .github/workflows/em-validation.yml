@@ -12,7 +12,7 @@ on:
     inputs:
       mode:
         description: "auto | snapshot | snapshot-em | report"
-        default: auto
+        default: report
 
 permissions: {}
 
